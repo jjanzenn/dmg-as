@@ -11,6 +11,7 @@
     typedef enum token_type {
         tok_NOP,
         tok_LD,
+        tok_LDH,
         tok_INC,
         tok_DEC,
         tok_RLCA,
@@ -19,6 +20,10 @@
         tok_STOP,
         tok_RLA,
         tok_JR,
+        tok_JRNZ,
+        tok_JRZ,
+        tok_JRNC,
+        tok_JRC,
         tok_RRA,
         tok_DAA,
         tok_CPL,
@@ -33,11 +38,30 @@
         tok_OR,
         tok_CP,
         tok_RET,
+        tok_RETNZ,
+        tok_RETZ,
+        tok_RETNC,
+        tok_RETC,
         tok_POP,
         tok_JP,
+        tok_JPNZ,
+        tok_JPZ,
+        tok_JPNC,
+        tok_JPC,
         tok_CALL,
+        tok_CALLNZ,
+        tok_CALLZ,
+        tok_CALLNC,
+        tok_CALLC,
         tok_PUSH,
-        tok_RST,
+        tok_RST0,
+        tok_RST1,
+        tok_RST2,
+        tok_RST3,
+        tok_RST4,
+        tok_RST5,
+        tok_RST6,
+        tok_RST7,
         tok_RETI,
         tok_DI,
         tok_EI,
@@ -49,9 +73,30 @@
         tok_SRA,
         tok_SWAP,
         tok_SRL,
-        tok_BIT,
-        tok_RES,
-        tok_SET,
+        tok_BIT0,
+        tok_BIT1,
+        tok_BIT2,
+        tok_BIT3,
+        tok_BIT4,
+        tok_BIT5,
+        tok_BIT6,
+        tok_BIT7,
+        tok_RES0,
+        tok_RES1,
+        tok_RES2,
+        tok_RES3,
+        tok_RES4,
+        tok_RES5,
+        tok_RES6,
+        tok_RES7,
+        tok_SET0,
+        tok_SET1,
+        tok_SET2,
+        tok_SET3,
+        tok_SET4,
+        tok_SET5,
+        tok_SET6,
+        tok_SET7,
 
         tok_AF,
         tok_BC,
@@ -112,6 +157,7 @@ REG_POST                              [ \t]*
 
 {INST_PRE}NOP{INST_POST}              printf("NOP\n"); add_token(tok_NOP, NULL);
 {INST_PRE}LD{INST_POST}               printf("LD\n"); add_token(tok_LD, NULL);
+{INST_PRE}LDH{INST_POST}              printf("LDH\n"); add_token(tok_LDH, NULL);
 {INST_PRE}INC{INST_POST}              printf("INC\n"); add_token(tok_INC, NULL);
 {INST_PRE}DEC{INST_POST}              printf("DEC\n"); add_token(tok_DEC, NULL);
 {INST_PRE}RLCA{INST_POST}             printf("RLCA\n"); add_token(tok_RLCA, NULL);
@@ -120,6 +166,10 @@ REG_POST                              [ \t]*
 {INST_PRE}STOP{INST_POST}             printf("STOP\n"); add_token(tok_STOP, NULL);
 {INST_PRE}RLA{INST_POST}              printf("RLA\n"); add_token(tok_RLA, NULL);
 {INST_PRE}JR{INST_POST}               printf("JR\n"); add_token(tok_JR, NULL);
+{INST_PRE}JRNZ{INST_POST}             printf("JRNZ\n"); add_token(tok_JRNZ, NULL);
+{INST_PRE}JRZ{INST_POST}              printf("JRZ\n"); add_token(tok_JRZ, NULL);
+{INST_PRE}JRNC{INST_POST}             printf("JRNC\n"); add_token(tok_JRNC, NULL);
+{INST_PRE}JRC{INST_POST}              printf("JRC\n"); add_token(tok_JRC, NULL);
 {INST_PRE}RRA{INST_POST}              printf("RRA\n"); add_token(tok_RRA, NULL);
 {INST_PRE}DAA{INST_POST}              printf("DAA\n"); add_token(tok_DAA, NULL);
 {INST_PRE}CPL{INST_POST}              printf("CPL\n"); add_token(tok_CPL, NULL);
@@ -134,11 +184,52 @@ REG_POST                              [ \t]*
 {INST_PRE}OR{INST_POST}               printf("OR\n"); add_token(tok_OR, NULL);
 {INST_PRE}CP{INST_POST}               printf("CP\n"); add_token(tok_CP, NULL);
 {INST_PRE}RET{INST_POST}              printf("RET\n"); add_token(tok_RET, NULL);
+{INST_PRE}RETNZ{INST_POST}            printf("RETNZ\n"); add_token(tok_RETNZ, NULL);
+{INST_PRE}RETZ{INST_POST}             printf("RETZ\n"); add_token(tok_RETZ, NULL);
+{INST_PRE}RETNC{INST_POST}            printf("RETNC\n"); add_token(tok_RETNC, NULL);
+{INST_PRE}RETC{INST_POST}             printf("RETC\n"); add_token(tok_RETC, NULL);
 {INST_PRE}POP{INST_POST}              printf("POP\n"); add_token(tok_POP, NULL);
 {INST_PRE}JP{INST_POST}               printf("JP\n"); add_token(tok_JP, NULL);
+{INST_PRE}JPNZ{INST_POST}             printf("JPNZ\n"); add_token(tok_JPNZ, NULL);
+{INST_PRE}JPZ{INST_POST}              printf("JPZ\n"); add_token(tok_JPZ, NULL);
+{INST_PRE}JPNC{INST_POST}             printf("JPNC\n"); add_token(tok_JPNC, NULL);
+{INST_PRE}JPC{INST_POST}              printf("JPC\n"); add_token(tok_JPC, NULL);
 {INST_PRE}CALL{INST_POST}             printf("CALL\n"); add_token(tok_CALL, NULL);
+{INST_PRE}CALLNZ{INST_POST}           printf("CALLNZ\n"); add_token(tok_CALLNZ, NULL);
+{INST_PRE}CALLZ{INST_POST}            printf("CALLZ\n"); add_token(tok_CALLZ, NULL);
+{INST_PRE}CALLNC{INST_POST}           printf("CALLNC\n"); add_token(tok_CALLNC, NULL);
+{INST_PRE}CALLC{INST_POST}            printf("CALLC\n"); add_token(tok_CALLC, NULL);
 {INST_PRE}PUSH{INST_POST}             printf("PUSH\n"); add_token(tok_PUSH, NULL);
-{INST_PRE}RST{INST_POST}              printf("RST\n"); add_token(tok_RST, NULL);
+{INST_PRE}RST[0-7]{INST_POST}         {
+                                          int end = yytext[yyleng-1] == ' ' ? yytext[yyleng-2] : yytext[yyleng-1];
+                                          printf("RST%c\n", end);
+                                          switch (end) {
+                                              case '0':
+                                                  add_token(tok_RST0, NULL);
+                                                  break;
+                                              case '1':
+                                                  add_token(tok_RST1, NULL);
+                                                  break;
+                                              case '2':
+                                                  add_token(tok_RST2, NULL);
+                                                  break;
+                                              case '3':
+                                                  add_token(tok_RST3, NULL);
+                                                  break;
+                                              case '4':
+                                                  add_token(tok_RST4, NULL);
+                                                  break;
+                                              case '5':
+                                                  add_token(tok_RST5, NULL);
+                                                  break;
+                                              case '6':
+                                                  add_token(tok_RST6, NULL);
+                                                  break;
+                                              case '7':
+                                                  add_token(tok_RST7, NULL);
+                                                  break;
+                                          }
+                                      }
 {INST_PRE}RETI{INST_POST}             printf("RETI\n"); add_token(tok_RETI, NULL);
 {INST_PRE}DI{INST_POST}               printf("DI\n"); add_token(tok_DI, NULL);
 {INST_PRE}EI{INST_POST}               printf("EI\n"); add_token(tok_EI, NULL);
@@ -150,9 +241,96 @@ REG_POST                              [ \t]*
 {INST_PRE}SRA{INST_POST}              printf("SRA\n"); add_token(tok_SRA, NULL);
 {INST_PRE}SWAP{INST_POST}             printf("SWAP\n"); add_token(tok_SWAP, NULL);
 {INST_PRE}SRL{INST_POST}              printf("SRL\n"); add_token(tok_SRL, NULL);
-{INST_PRE}BIT{INST_POST}              printf("BIT\n"); add_token(tok_BIT, NULL);
-{INST_PRE}RES{INST_POST}              printf("RES\n"); add_token(tok_RES, NULL);
-{INST_PRE}SET{INST_POST}              printf("SET\n"); add_token(tok_SET, NULL);
+{INST_PRE}BIT[0-7]{INST_POST}         {
+                                          int end = yytext[yyleng-1] == ' ' ? yytext[yyleng-2] : yytext[yyleng-1];
+                                          printf("BIT%c\n", end);
+                                          switch (end) {
+                                              case '0':
+                                                  add_token(tok_BIT0, NULL);
+                                                  break;
+                                              case '1':
+                                                  add_token(tok_BIT1, NULL);
+                                                  break;
+                                              case '2':
+                                                  add_token(tok_BIT2, NULL);
+                                                  break;
+                                              case '3':
+                                                  add_token(tok_BIT3, NULL);
+                                                  break;
+                                              case '4':
+                                                  add_token(tok_BIT4, NULL);
+                                                  break;
+                                              case '5':
+                                                  add_token(tok_BIT5, NULL);
+                                                  break;
+                                              case '6':
+                                                  add_token(tok_BIT6, NULL);
+                                                  break;
+                                              case '7':
+                                                  add_token(tok_BIT7, NULL);
+                                                  break;
+                                          }
+                                      }
+{INST_PRE}RES[0-7]{INST_POST}         {
+                                          int end = yytext[yyleng-1] == ' ' ? yytext[yyleng-2] : yytext[yyleng-1];
+                                          printf("RES%c\n", end);
+                                          switch (end) {
+                                              case '0':
+                                                  add_token(tok_RES0, NULL);
+                                                  break;
+                                              case '1':
+                                                  add_token(tok_RES1, NULL);
+                                                  break;
+                                              case '2':
+                                                  add_token(tok_RES2, NULL);
+                                                  break;
+                                              case '3':
+                                                  add_token(tok_RES3, NULL);
+                                                  break;
+                                              case '4':
+                                                  add_token(tok_RES4, NULL);
+                                                  break;
+                                              case '5':
+                                                  add_token(tok_RES5, NULL);
+                                                  break;
+                                              case '6':
+                                                  add_token(tok_RES6, NULL);
+                                                  break;
+                                              case '7':
+                                                  add_token(tok_RES7, NULL);
+                                                  break;
+                                          }
+                                      }
+{INST_PRE}SET[0-7]{INST_POST}         {
+                                          int end = yytext[yyleng-1] == ' ' ? yytext[yyleng-2] : yytext[yyleng-1];
+                                          printf("SET%c\n", end);
+                                          switch (end) {
+                                              case '0':
+                                                  add_token(tok_SET0, NULL);
+                                                  break;
+                                              case '1':
+                                                  add_token(tok_SET1, NULL);
+                                                  break;
+                                              case '2':
+                                                  add_token(tok_SET2, NULL);
+                                                  break;
+                                              case '3':
+                                                  add_token(tok_SET3, NULL);
+                                                  break;
+                                              case '4':
+                                                  add_token(tok_SET4, NULL);
+                                                  break;
+                                              case '5':
+                                                  add_token(tok_SET5, NULL);
+                                                  break;
+                                              case '6':
+                                                  add_token(tok_SET6, NULL);
+                                                  break;
+                                              case '7':
+                                                  add_token(tok_SET7, NULL);
+                                                  break;
+                                          }
+                                      }
 
 AF{REG_POST}                          printf("AF\n"); add_token(tok_AF, NULL);
 BC{REG_POST}                          printf("BC\n"); add_token(tok_BC, NULL);
@@ -288,7 +466,7 @@ void add_token(token_type_t type, void *data)
 
     if (type >= tok_NOP && type <= tok_EI) {
         inst_index += 1;
-    } else if (type >= tok_RLC && type <= tok_SET) {
+    } else if (type >= tok_RLC && type <= tok_SET7) {
         inst_index += 2;
     } else if (type == tok_COMMA) {
         unput(' ');
@@ -334,6 +512,43 @@ void add_token(token_type_t type, void *data)
                    tokens[tokens_i-2].type == tok_SP &&
                    tokens[tokens_i-1].type == tok_COMMA) {
             inst_index += 1;
+        } else if (tokens_i >= 3 &&
+                   tokens[tokens_i-3].type == tok_LD &&
+                   (tokens[tokens_i-2].type == tok_BC ||
+                    tokens[tokens_i-2].type == tok_DE ||
+                    tokens[tokens_i-2].type == tok_HL ||
+                    tokens[tokens_i-2].type == tok_DE ||
+                    tokens[tokens_i-2].type == tok_SP) &&
+                   tokens[tokens_i-1].type == tok_COMMA) {
+            inst_index += 2;
+        } else if (tokens_i >= 2 &&
+                   tokens[tokens_i-2].type == tok_LD &&
+                   tokens[tokens_i-1].type == tok_LPAR) {
+            inst_index += 2;
+        } else if (tokens_i >= 2 &&
+                   tokens[tokens_i-2].type == tok_LDH &&
+                   tokens[tokens_i-1].type == tok_LPAR) {
+            inst_index += 1;
+        } else if (tokens_i >= 4 &&
+                   tokens[tokens_i-4].type == tok_LD &&
+                   tokens[tokens_i-3].type == tok_A &&
+                   tokens[tokens_i-2].type == tok_COMMA &&
+                   tokens[tokens_i-1].type == tok_LPAR) {
+            inst_index += 2;
+        } else if (tokens_i >= 4 &&
+                   tokens[tokens_i-4].type == tok_LDH &&
+                   tokens[tokens_i-3].type == tok_A &&
+                   tokens[tokens_i-2].type == tok_COMMA &&
+                   tokens[tokens_i-1].type == tok_LPAR) {
+            inst_index += 1;
+        } else if (tokens_i >= 1 &&
+                   ((tokens[tokens_i-1].type >= tok_CALL &&
+                    tokens[tokens_i-1].type <= tok_CALLC) ||
+                    (tokens[tokens_i-1].type >= tok_JP &&
+                    tokens[tokens_i-1].type <= tok_JPC) ||
+                    (tokens[tokens_i-1].type >= tok_JR &&
+                    tokens[tokens_i-1].type <= tok_JRC))) {
+            inst_index += 2;
         }
     }
 
