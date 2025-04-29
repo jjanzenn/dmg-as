@@ -1,99 +1,103 @@
 %{
-#include <stdint.h>
-#include <stdio.h>
-#include <stddef.h>
-#include <ctype.h>
-#include "dict.h"
+    #include <stdint.h>
+    #include <stdio.h>
+    #include <stddef.h>
+    #include <string.h>
+    #include <ctype.h>
+    #include "dict.h"
 
-#define BASE_INDEX 0x0100
+    #define BASE_INDEX 0x0100
 
-typedef enum token_type {
-    tok_NOP,
-    tok_LD,
-    tok_INC,
-    tok_DEC,
-    tok_RLCA,
-    tok_ADD,
-    tok_RRCA,
-    tok_STOP,
-    tok_RLA,
-    tok_JR,
-    tok_RRA,
-    tok_DAA,
-    tok_CPL,
-    tok_SCF,
-    tok_CCF,
-    tok_HALT,
-    tok_ADC,
-    tok_SUB,
-    tok_SBC,
-    tok_AND,
-    tok_XOR,
-    tok_OR,
-    tok_CP,
-    tok_RET,
-    tok_POP,
-    tok_JP,
-    tok_CALL,
-    tok_PUSH,
-    tok_RST,
-    tok_RETI,
-    tok_DI,
-    tok_EI,
-    tok_RLC,
-    tok_RRC,
-    tok_RL,
-    tok_RR,
-    tok_SLA,
-    tok_SRA,
-    tok_SWAP,
-    tok_SRL,
-    tok_BIT,
-    tok_RES,
-    tok_SET,
+    typedef enum token_type {
+        tok_NOP,
+        tok_LD,
+        tok_INC,
+        tok_DEC,
+        tok_RLCA,
+        tok_ADD,
+        tok_RRCA,
+        tok_STOP,
+        tok_RLA,
+        tok_JR,
+        tok_RRA,
+        tok_DAA,
+        tok_CPL,
+        tok_SCF,
+        tok_CCF,
+        tok_HALT,
+        tok_ADC,
+        tok_SUB,
+        tok_SBC,
+        tok_AND,
+        tok_XOR,
+        tok_OR,
+        tok_CP,
+        tok_RET,
+        tok_POP,
+        tok_JP,
+        tok_CALL,
+        tok_PUSH,
+        tok_RST,
+        tok_RETI,
+        tok_DI,
+        tok_EI,
+        tok_RLC,
+        tok_RRC,
+        tok_RL,
+        tok_RR,
+        tok_SLA,
+        tok_SRA,
+        tok_SWAP,
+        tok_SRL,
+        tok_BIT,
+        tok_RES,
+        tok_SET,
 
-    tok_AF,
-    tok_BC,
-    tok_DE,
-    tok_HL,
-    tok_SP,
-    tok_A,
-    tok_B,
-    tok_C,
-    tok_D,
-    tok_E,
-    tok_H,
-    tok_L,
+        tok_AF,
+        tok_BC,
+        tok_DE,
+        tok_HL,
+        tok_HL_inc,
+        tok_HL_dec,
+        tok_SP,
+        tok_A,
+        tok_B,
+        tok_C,
+        tok_D,
+        tok_E,
+        tok_H,
+        tok_L,
 
-    tok_INT,
-    tok_LABEL,
+        tok_INT,
+        tok_LABEL,
 
-    tok_COMMA,
-} token_type_t;
+        tok_COMMA,
+        tok_LPAR,
+        tok_RPAR,
 
-typedef struct token {
-    token_type_t type;
-    void *data;
-} token_t;
+        tok_ERROR_DUPLICATE_LABEL,
+        tok_ERROR_UNEXPECTED_TOKEN,
+    } token_type_t;
 
-token_t *tokens;
-size_t tokens_capacity = 0x8000;
-size_t tokens_i = 0;
+    typedef struct token {
+        token_type_t type;
+        void *data;
+    } token_t;
 
-uint16_t curr_line = 0;
-dict_t *dict;
+    token_t *tokens;
+    size_t tokens_capacity = 0x8000;
+    size_t tokens_i = 0;
 
-void add_token(token_type_t type, void *data);
+    dict_t *dict;
+    uint16_t inst_index = 0;
 
+    void add_token(token_type_t type, void *data);
 %}
 
 INST_PRE                                          ^[ \t]*
 INST_POST                                         [ \t\n;]
 
-REG_PRE                                           [ \t]+
 REG_POST                                          [ \t]*
-
-HEX_CHAR                                          [0-9A-F]
 
 %%
 
@@ -147,20 +151,22 @@ HEX_CHAR                                          [0-9A-F]
 {INST_PRE}RES{INST_POST}                          printf("RES\n"); add_token(tok_RES, NULL);
 {INST_PRE}SET{INST_POST}                          printf("SET\n"); add_token(tok_SET, NULL);
 
-{REG_PRE}AF{REG_POST}                             printf("AF\n"); add_token(tok_AF, NULL);
-{REG_PRE}BC{REG_POST}                             printf("BC\n"); add_token(tok_BC, NULL);
-{REG_PRE}DE{REG_POST}                             printf("DE\n"); add_token(tok_DE, NULL);
-{REG_PRE}HL{REG_POST}                             printf("HL\n"); add_token(tok_HL, NULL);
-{REG_PRE}SP{REG_POST}                             printf("SP\n"); add_token(tok_SP, NULL);
-{REG_PRE}A{REG_POST}                              printf("A\n"); add_token(tok_A, NULL);
-{REG_PRE}B{REG_POST}                              printf("B\n"); add_token(tok_B, NULL);
-{REG_PRE}C{REG_POST}                              printf("C\n"); add_token(tok_C, NULL);
-{REG_PRE}D{REG_POST}                              printf("D\n"); add_token(tok_D, NULL);
-{REG_PRE}E{REG_POST}                              printf("E\n"); add_token(tok_E, NULL);
-{REG_PRE}H{REG_POST}                              printf("H\n"); add_token(tok_H, NULL);
-{REG_PRE}L{REG_POST}                              printf("L\n"); add_token(tok_L, NULL);
+AF{REG_POST}                                      printf("AF\n"); add_token(tok_AF, NULL);
+BC{REG_POST}                                      printf("BC\n"); add_token(tok_BC, NULL);
+DE{REG_POST}                                      printf("DE\n"); add_token(tok_DE, NULL);
+HL{REG_POST}                                      printf("HL\n"); add_token(tok_HL, NULL);
+HL\+{REG_POST}                                    printf("HL+\n"); add_token(tok_HL_inc, NULL);
+HL-{REG_POST}                                     printf("HL-\n"); add_token(tok_HL_dec, NULL);
+SP{REG_POST}                                      printf("SP\n"); add_token(tok_SP, NULL);
+A{REG_POST}                                       printf("A\n"); add_token(tok_A, NULL);
+B{REG_POST}                                       printf("B\n"); add_token(tok_B, NULL);
+C{REG_POST}                                       printf("C\n"); add_token(tok_C, NULL);
+D{REG_POST}                                       printf("D\n"); add_token(tok_D, NULL);
+E{REG_POST}                                       printf("E\n"); add_token(tok_E, NULL);
+H{REG_POST}                                       printf("H\n"); add_token(tok_H, NULL);
+L{REG_POST}                                       printf("L\n"); add_token(tok_L, NULL);
 
-\${HEX_CHAR}{HEX_CHAR}?{HEX_CHAR}?{HEX_CHAR}?     {
+\$[0-9A-F][0-9A-F]?[0-9A-F]?[0-9A-F]?             {
                                                       uint16_t *data = malloc(sizeof(uint16_t));
                                                       *data = strtol(&yytext[1], NULL, 16);
                                                       printf("int: 0x%04X\n", *data);
@@ -178,7 +184,46 @@ HEX_CHAR                                          [0-9A-F]
                                                       }
                                                   }
 
-{REG_PRE}[A-Z_][A-Z0-9_]*{REG_POST}               {
+^[A-Z_][A-Z0-9_]*:                                {
+                                                      // copy lowercase label into key
+                                                      size_t text_length = yyleng - 1;
+                                                      char *key = malloc(text_length + 1);
+                                                      for (int i = 0; i < text_length; ++i) {
+                                                          key[i] = tolower(yytext[i]);
+                                                      }
+                                                      key[text_length] = 0;
+
+                                                      // check for duplicate label
+                                                      if (dict_get(dict, key, text_length)) {
+                                                          char *data = malloc(yyleng + 1);
+                                                          memcpy(data, yytext, yyleng + 1);
+                                                          printf("ERROR: duplicate label: \"%s\"\n", key);
+                                                          free(key);
+                                                          add_token(tok_ERROR_DUPLICATE_LABEL, data);
+                                                      } else {
+                                                          // check for special labels
+                                                          if (strcmp(key, "_start") == 0) {
+                                                              inst_index = 0x0100;
+                                                          } else if (strcmp(key, "_vblank") == 0) {
+                                                              inst_index = 0x0040;
+                                                          } else if (strcmp(key, "_stat") == 0) {
+                                                              inst_index = 0x0048;
+                                                          } else if (strcmp(key, "_timer") == 0) {
+                                                              inst_index = 0x0050;
+                                                          } else if (strcmp(key, "_serial") == 0) {
+                                                              inst_index = 0x0058;
+                                                          } else if (strcmp(key, "_joypad") == 0) {
+                                                              inst_index = 0x0060;
+                                                          }
+                                                          uint16_t *data = malloc(sizeof(uint16_t));
+                                                          *data = inst_index;
+                                                          dict_put(dict, key, text_length, data);
+                                                          printf("Label \"%s\" maps to 0x%04X\n", key, *data);
+                                                          unput('\n');
+                                                      }
+                                                  }
+
+[A-Z_][A-Z0-9_]*{REG_POST}                        {
                                                       char *data = malloc(yyleng + 1);
 
                                                       int i = 0;
@@ -195,32 +240,27 @@ HEX_CHAR                                          [0-9A-F]
                                                   }
 
 ,                                                 printf("COMMA\n"); add_token(tok_COMMA, NULL);
-
-^[A-Z_][A-Z0-9_]*:                                {
-                                                      size_t text_length = yyleng - 1;
-                                                      uint16_t *data = malloc(sizeof(uint16_t));
-                                                      *data = curr_line;
-                                                      char *key = malloc(text_length + 1);
-                                                      for (int i = 0; i < text_length; ++i) {
-                                                          key[i] = tolower(yytext[i]);
-                                                      }
-                                                      key[text_length] = 0;
-                                                      dict_put(dict, key,
-                                                               text_length,
-                                                               data);
-                                                      printf("Label: \"%s\"\n", key);
-                                                      unput('\n');
-                                                  }
+"("                                               printf("LPAR\n"); add_token(tok_LPAR, NULL);
+")"                                               printf("RPAR\n"); add_token(tok_RPAR, NULL);
 
 [ \n\t]                                           /* do nothing */
 .                                                 {
-                                                      printf("Syntax error: ");
+                                                      int capacity = 0x100;
+                                                      char *data = malloc(capacity);
+
+                                                      int i = 0;
                                                       int c = yytext[0];
                                                       while (c != '\n' && c != EOF) {
-                                                          putchar(c);
+                                                          if (i == capacity) {
+                                                              capacity *= 2;
+                                                              data = realloc(data, capacity);
+                                                          }
+                                                          data[i++] = c;
                                                           c = input();
                                                       }
-                                                      putchar('\n');
+
+                                                      printf("Unexpected token: \"%s\"\n", data);
+                                                      add_token(tok_ERROR_UNEXPECTED_TOKEN, data);
                                                   }
 
 %%
@@ -238,7 +278,9 @@ void add_token(token_type_t type, void *data)
     }
     tokens[tokens_i] = tok;
 
-    if ((type >= tok_NOP && type <= tok_SET) || type == tok_COMMA) {
+    if (type >= tok_NOP && type <= tok_SET) {
+        inst_index += 1;
+    } else if (type == tok_COMMA) {
         unput(' ');
     }
 }
