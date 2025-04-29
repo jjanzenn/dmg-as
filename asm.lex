@@ -560,11 +560,9 @@ int main(void)
     dict = dict_init();
     tokens = malloc(tokens_capacity);
 
-    if (yylex() != 1) {
-    }
+    yylex();
 
     dict_deinit(dict);
-
     for (int i = 0; i < tokens_i; ++i) {
         if (tokens[tokens_i].data) {
            free(tokens[tokens_i].data);
