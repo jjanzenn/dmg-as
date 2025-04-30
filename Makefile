@@ -8,7 +8,7 @@ dmg-as: lex.yy.c dict.o
 dict.o: dict.c
 	${CC} ${CFLAGS} -c $^ -o $@
 
-lex.yy.c: asm.lex
+lex.yy.c: asm.l
 	lex -i $^
 
 clean:
