@@ -5,132 +5,7 @@
     #include <string.h>
     #include <ctype.h>
     #include "dict.h"
-
-    #define BASE_INDEX 0x0100
-
-    typedef enum token_type {
-        tok_NOP,
-        tok_LD,
-        tok_LDH,
-        tok_INC,
-        tok_DEC,
-        tok_RLCA,
-        tok_ADD,
-        tok_RRCA,
-        tok_STOP,
-        tok_RLA,
-        tok_JR,
-        tok_JRNZ,
-        tok_JRZ,
-        tok_JRNC,
-        tok_JRC,
-        tok_RRA,
-        tok_DAA,
-        tok_CPL,
-        tok_SCF,
-        tok_CCF,
-        tok_HALT,
-        tok_ADC,
-        tok_SUB,
-        tok_SBC,
-        tok_AND,
-        tok_XOR,
-        tok_OR,
-        tok_CP,
-        tok_RET,
-        tok_RETNZ,
-        tok_RETZ,
-        tok_RETNC,
-        tok_RETC,
-        tok_POP,
-        tok_JP,
-        tok_JPNZ,
-        tok_JPZ,
-        tok_JPNC,
-        tok_JPC,
-        tok_CALL,
-        tok_CALLNZ,
-        tok_CALLZ,
-        tok_CALLNC,
-        tok_CALLC,
-        tok_PUSH,
-        tok_RST0,
-        tok_RST1,
-        tok_RST2,
-        tok_RST3,
-        tok_RST4,
-        tok_RST5,
-        tok_RST6,
-        tok_RST7,
-        tok_RETI,
-        tok_DI,
-        tok_EI,
-        tok_RLC,
-        tok_RRC,
-        tok_RL,
-        tok_RR,
-        tok_SLA,
-        tok_SRA,
-        tok_SWAP,
-        tok_SRL,
-        tok_BIT0,
-        tok_BIT1,
-        tok_BIT2,
-        tok_BIT3,
-        tok_BIT4,
-        tok_BIT5,
-        tok_BIT6,
-        tok_BIT7,
-        tok_RES0,
-        tok_RES1,
-        tok_RES2,
-        tok_RES3,
-        tok_RES4,
-        tok_RES5,
-        tok_RES6,
-        tok_RES7,
-        tok_SET0,
-        tok_SET1,
-        tok_SET2,
-        tok_SET3,
-        tok_SET4,
-        tok_SET5,
-        tok_SET6,
-        tok_SET7,
-
-        tok_AF,
-        tok_BC,
-        tok_DE,
-        tok_HL,
-        tok_HL_INC,
-        tok_HL_DEC,
-        tok_SP,
-        tok_SP_PLUS,
-        tok_A,
-        tok_B,
-        tok_C,
-        tok_D,
-        tok_E,
-        tok_H,
-        tok_L,
-
-        tok_INT,
-        tok_LABEL,
-
-        tok_COMMA,
-        tok_LPAR,
-        tok_RPAR,
-
-        tok_ERROR_INTEGER_OVERFLOW,
-        tok_ERROR_DUPLICATE_LABEL,
-        tok_ERROR_UNEXPECTED_SYMBOL,
-    } token_type_t;
-
-    typedef struct token {
-        token_type_t type;
-        void *data;
-        uint16_t location;
-    } token_t;
+    #include "assemble.h"
 
     token_t *tokens;
     size_t tokens_capacity = 0x8000;
@@ -138,8 +13,10 @@
 
     dict_t *dict;
     uint16_t inst_index = 0;
+    int line_number = 1;
+    int fake_line_number = 0;
 
-    void add_token(token_type_t type, void *data);
+    static void add_token(token_type_t type, void *data);
 %}
 
 INST_PRE                              ^[ \t]*
@@ -404,7 +281,11 @@ L{REG_POST}                           printf("L\n"); add_token(tok_L, NULL);
                                               *data = inst_index;
                                               dict_put(dict, key, text_length, data);
                                               printf("Label \"%s\" maps to 0x%04X\n", key, *data);
+                                              int c = input();
+                                              if (c != '\n')
+                                                  fake_line_number = 1;
                                               unput('\n');
+                                              unput(c);
                                           }
                                       }
 
@@ -428,7 +309,15 @@ L{REG_POST}                           printf("L\n"); add_token(tok_L, NULL);
 "("                                    printf("LPAR\n"); add_token(tok_LPAR, NULL);
 ")"                                    printf("RPAR\n"); add_token(tok_RPAR, NULL);
 
-[ \n\t]                                /* do nothing */
+[ \t]                                  /* do nothing */
+\n                                     {
+                                           printf("line: %d\n", line_number);
+                                           if (fake_line_number) {
+                                               fake_line_number = 0;
+                                           } else {
+                                               ++line_number;
+                                           }
+                                       }
 .                                      {
                                            int capacity = 0x100;
                                            char *data = malloc(capacity);
@@ -456,6 +345,7 @@ void add_token(token_type_t type, void *data)
         .type = type,
         .data = data,
         .location = inst_index,
+        .line_number = line_number,
     };
 
     if (tokens_i == tokens_capacity) {
@@ -466,7 +356,7 @@ void add_token(token_type_t type, void *data)
 
     if (type >= tok_NOP && type <= tok_EI) {
         inst_index += 1;
-    } else if (type >= tok_RLC && type <= tok_SET7) {
+    } else if ((type >= tok_RLC && type <= tok_SET7) || type == tok_STOP) {
         inst_index += 2;
     } else if (type == tok_COMMA) {
         unput(' ');
@@ -555,8 +445,16 @@ void add_token(token_type_t type, void *data)
     ++tokens_i;
 }
 
-int main(void)
+int main(int argc, char **argv)
 {
+    FILE *fp;
+    if (argc >= 2) {
+        fp = fopen(argv[1], "r");
+        fseek(fp, 0, SEEK_END);
+        int size = ftell(fp);
+        rewind(fp);
+        yy_switch_to_buffer(yy_create_buffer(fp, size));
+    }
     dict = dict_init();
     tokens = malloc(tokens_capacity);
 

@@ -19,7 +19,7 @@ static uint32_t adler32(const void *buf, size_t buflength)
     return (s2 << 16) | s1;
 }
 
-static int keyequal(void *key, size_t keysize, node_t *other)
+static int keyequal(const void *key, size_t keysize, const node_t *other)
 {
     int equal = other->keysize == keysize;
     for (int i = 0; equal && i < keysize; ++i) {
@@ -86,7 +86,7 @@ void dict_put(dict_t *d, void *key, size_t keysize, void *data)
     }
 }
 
-void *dict_get(dict_t *d, void *key, size_t keysize)
+void *dict_get(const dict_t *d, const void *key, size_t keysize)
 {
     uint32_t index = adler32(key, keysize) % d->capacity;
 

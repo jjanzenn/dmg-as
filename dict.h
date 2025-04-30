@@ -24,6 +24,6 @@ dict_t *dict_init(void);
 void dict_deinit(dict_t *d);
 
 void dict_put(dict_t *d, void *key, size_t keysize, void *data);
-void *dict_get(dict_t *d, void *key, size_t keysize);
+void *dict_get(const dict_t *d, const void *key, size_t keysize);
 
 #endif

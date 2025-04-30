@@ -1,0 +1,137 @@
+#ifndef _ASSEMBLE_H
+#define _ASSEMBLE_H
+
+#include "dict.h"
+#include <stddef.h>
+#include <stdint.h>
+
+#define MAX_ROM_SIZE 0x8000
+
+typedef enum token_type {
+    tok_NOP,
+    tok_LD,
+    tok_LDH,
+    tok_INC,
+    tok_DEC,
+    tok_RLCA,
+    tok_ADD,
+    tok_RRCA,
+    tok_STOP,
+    tok_RLA,
+    tok_JR,
+    tok_JRNZ,
+    tok_JRZ,
+    tok_JRNC,
+    tok_JRC,
+    tok_RRA,
+    tok_DAA,
+    tok_CPL,
+    tok_SCF,
+    tok_CCF,
+    tok_HALT,
+    tok_ADC,
+    tok_SUB,
+    tok_SBC,
+    tok_AND,
+    tok_XOR,
+    tok_OR,
+    tok_CP,
+    tok_RET,
+    tok_RETNZ,
+    tok_RETZ,
+    tok_RETNC,
+    tok_RETC,
+    tok_POP,
+    tok_JP,
+    tok_JPNZ,
+    tok_JPZ,
+    tok_JPNC,
+    tok_JPC,
+    tok_CALL,
+    tok_CALLNZ,
+    tok_CALLZ,
+    tok_CALLNC,
+    tok_CALLC,
+    tok_PUSH,
+    tok_RST0,
+    tok_RST1,
+    tok_RST2,
+    tok_RST3,
+    tok_RST4,
+    tok_RST5,
+    tok_RST6,
+    tok_RST7,
+    tok_RETI,
+    tok_DI,
+    tok_EI,
+    tok_RLC,
+    tok_RRC,
+    tok_RL,
+    tok_RR,
+    tok_SLA,
+    tok_SRA,
+    tok_SWAP,
+    tok_SRL,
+    tok_BIT0,
+    tok_BIT1,
+    tok_BIT2,
+    tok_BIT3,
+    tok_BIT4,
+    tok_BIT5,
+    tok_BIT6,
+    tok_BIT7,
+    tok_RES0,
+    tok_RES1,
+    tok_RES2,
+    tok_RES3,
+    tok_RES4,
+    tok_RES5,
+    tok_RES6,
+    tok_RES7,
+    tok_SET0,
+    tok_SET1,
+    tok_SET2,
+    tok_SET3,
+    tok_SET4,
+    tok_SET5,
+    tok_SET6,
+    tok_SET7,
+
+    tok_AF,
+    tok_BC,
+    tok_DE,
+    tok_HL,
+    tok_HL_INC,
+    tok_HL_DEC,
+    tok_SP,
+    tok_SP_PLUS,
+    tok_A,
+    tok_B,
+    tok_C,
+    tok_D,
+    tok_E,
+    tok_H,
+    tok_L,
+
+    tok_INT,
+    tok_LABEL,
+
+    tok_COMMA,
+    tok_LPAR,
+    tok_RPAR,
+
+    tok_ERROR_INTEGER_OVERFLOW,
+    tok_ERROR_DUPLICATE_LABEL,
+    tok_ERROR_UNEXPECTED_SYMBOL,
+} token_type_t;
+
+typedef struct token {
+    token_type_t type;
+    void *data;
+    uint16_t location;
+    int line_number;
+} token_t;
+
+uint8_t *assemble(const dict_t *dict, const token_t *tokens, size_t num_tokens);
+
+#endif
