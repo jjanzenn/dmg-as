@@ -2,3 +2,6 @@
 /dmg-as
 /lex.yy.c
 /out.gb
+/.cache/
+/build/
+/compile_commands.json
