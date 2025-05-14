@@ -1,12 +1,12 @@
 _main:  nop
-        ld B,C
+        ld b,c
 
 label1:
         pop bc
-_vblank:        ld B,label1
+_vblank:        ld [label1],sp
 
         nop
 
 label2: nop
-        ld B,label2
+        ld b,label2
 label3: nop

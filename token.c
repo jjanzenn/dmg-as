@@ -21,6 +21,26 @@ static void string_append(struct token_string *str, char c)
     str->data[str->size++] = c;
 }
 
+static inline int is_special_token(char c)
+{
+    return c == ':' || c == ',' || c == '\n' || c == '[' || c == ']' ||
+           c == '+';
+}
+
+static inline int is_whitespace(char c)
+{
+    return c == ' ' || c == '\t' || c == '\r' || c == '\f';
+}
+
+static int skip_to_newline(FILE *f)
+{
+    int c = fgetc(f);
+    while (c != '\n' && c != EOF)
+        c = fgetc(f);
+
+    return c;
+}
+
 char *next_token(FILE *f)
 {
     if (!f)
@@ -33,17 +53,27 @@ char *next_token(FILE *f)
     };
 
     int c = fgetc(f);
-    if (c == ':' || c == ',' || c == '\n') {
-        string_append(&str, c);
-    } else if (c == EOF) {
+
+    while (c != EOF && is_whitespace(c)) {
+        c = fgetc(f);
+    }
+
+    if (c == EOF) {
         free(str.data);
         return NULL;
-    } else {
-        while ((c == ' ' || c == '\t' || c == '\r' || c == '\f') && c != EOF) {
-            c = fgetc(f);
+    } else if (is_special_token(c)) {
+        string_append(&str, c);
+    } else if (c == ';') {
+        if (skip_to_newline(f) == EOF) {
+            free(str.data);
+        } else {
+            string_append(&str, '\n');
+            string_append(&str, 0);
+            ungetc('\n', f);
         }
-        while (c != EOF && c != ':' && c != ',' && c != '\n' && c != ' ' &&
-               c != '\t' && c != '\r' && c != '\f') {
+    } else {
+        while (c != EOF && !is_special_token(c) && c != '\n' &&
+               !is_whitespace(c)) {
             string_append(&str, tolower(c));
             c = fgetc(f);
         }

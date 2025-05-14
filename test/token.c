@@ -20,7 +20,7 @@ void tearDown(void) { fclose(f); };
 
 void test_get_each_token(void)
 {
-    char **tokens = malloc(sizeof(char *) * 40);
+    char **tokens = malloc(sizeof(char *) * 42);
     {
         tokens[0] = "_main";
         tokens[1] = ":";
@@ -41,27 +41,29 @@ void test_get_each_token(void)
         tokens[16] = "_vblank";
         tokens[17] = ":";
         tokens[18] = "ld";
-        tokens[19] = "b";
-        tokens[20] = ",";
-        tokens[21] = "label1";
-        tokens[22] = "\n";
-        tokens[23] = "\n";
-        tokens[24] = "nop";
+        tokens[19] = "[";
+        tokens[20] = "label1";
+        tokens[21] = "]";
+        tokens[22] = ",";
+        tokens[23] = "sp";
+        tokens[24] = "\n";
         tokens[25] = "\n";
-        tokens[26] = "\n";
-        tokens[27] = "label2";
-        tokens[28] = ":";
-        tokens[29] = "nop";
-        tokens[30] = "\n";
-        tokens[31] = "ld";
-        tokens[32] = "b";
-        tokens[33] = ",";
-        tokens[34] = "label2";
-        tokens[35] = "\n";
-        tokens[36] = "label3";
-        tokens[37] = ":";
-        tokens[38] = "nop";
-        tokens[39] = "\n";
+        tokens[26] = "nop";
+        tokens[27] = "\n";
+        tokens[28] = "\n";
+        tokens[29] = "label2";
+        tokens[30] = ":";
+        tokens[31] = "nop";
+        tokens[32] = "\n";
+        tokens[33] = "ld";
+        tokens[34] = "b";
+        tokens[35] = ",";
+        tokens[36] = "label2";
+        tokens[37] = "\n";
+        tokens[38] = "label3";
+        tokens[39] = ":";
+        tokens[40] = "nop";
+        tokens[41] = "\n";
     };
 
     int i = 0;
@@ -69,11 +71,11 @@ void test_get_each_token(void)
     do {
         tok = next_token(f);
         if (tok) {
-            TEST_ASSERT_LESS_THAN(40, i);
+            TEST_ASSERT_LESS_THAN(42, i);
             TEST_ASSERT_EQUAL_STRING(tokens[i++], tok);
         }
     } while (tok != NULL);
-    TEST_ASSERT_EQUAL_INT(40, i);
+    TEST_ASSERT_EQUAL_INT(42, i);
     free(tokens);
 }
 
