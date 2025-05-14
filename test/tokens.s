@@ -10,3 +10,6 @@ _vblank:        ld [label1],sp
 label2: nop
         ld b,label2
 label3: nop
+        ld [hl+],A
+        ld [hl-],A
+        ld [hl],sp+$10

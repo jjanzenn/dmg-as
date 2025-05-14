@@ -24,7 +24,7 @@ static void string_append(struct token_string *str, char c)
 static inline int is_special_token(char c)
 {
     return c == ':' || c == ',' || c == '\n' || c == '[' || c == ']' ||
-           c == '+';
+           c == '+' || c == '-';
 }
 
 static inline int is_whitespace(char c)
