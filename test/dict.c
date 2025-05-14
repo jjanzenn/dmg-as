@@ -44,7 +44,25 @@ void test_reinsertion_replaces_old_value(void)
     TEST_ASSERT_EQUAL_UINT16(data2, *newdata);
 }
 
-void test_rehash_when_past_load_factor(void) {}
+void test_rehash_when_past_load_factor(void)
+{
+    char keys[1024][1025];
+    for (int i = 0; i < 1024; ++i) {
+        for (int j = 0; j < 1024; ++j) {
+            keys[i][j] = 'a';
+        }
+        keys[i][i] = 'b';
+        keys[i][1024] = 0;
+    }
+
+    TEST_ASSERT_EQUAL_UINT(0, d->size);
+
+    for (int i = 0; i < 1024; ++i) {
+        dict_insert(d, keys[i], 0xABCD);
+        TEST_ASSERT_EQUAL_UINT(i + 1, d->size);
+    }
+    TEST_ASSERT_EQUAL_UINT(2048, d->capacity);
+}
 
 // not needed when using generate_test_runner.rb
 int main(void)
@@ -52,5 +70,6 @@ int main(void)
     UNITY_BEGIN();
     RUN_TEST(test_basic_insert_and_get_data);
     RUN_TEST(test_reinsertion_replaces_old_value);
+    RUN_TEST(test_rehash_when_past_load_factor);
     return UNITY_END();
 }

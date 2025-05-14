@@ -8,6 +8,54 @@
 #define DEFAULT_CAPACITY 1024
 #define MAX_LOAD_FACTOR 0.7
 
+static void free_dict_data(dict *d)
+{
+    if (!d)
+        return;
+    if (d->data) {
+        for (int i = 0; i < d->capacity; ++i) {
+            ll_node *prev = NULL;
+            ll_node *curr = d->data[i];
+            while (curr) {
+                prev = curr;
+                curr = curr->next;
+                free(prev->data);
+                free(prev);
+            }
+        }
+        free(d->data);
+    }
+}
+
+static void rehash(dict *d)
+{
+    if (!d)
+        return;
+
+    dict *newd = dict_init();
+    newd->capacity = d->capacity * 2;
+    newd->data = realloc(newd->data, sizeof(ll_node *) * newd->capacity);
+    for (int i = 0; i < newd->capacity; ++i) {
+        newd->data[i] = NULL;
+    }
+
+    for (int i = 0; i < d->capacity; ++i) {
+        ll_node *curr = d->data[i];
+        while (curr) {
+            if (curr->data) {
+                dict_insert(newd, curr->data->key, curr->data->value);
+            }
+            curr = curr->next;
+        }
+    }
+
+    free_dict_data(d);
+
+    d->capacity *= 2;
+    d->data = newd->data;
+    free(newd);
+}
+
 dict *dict_init(void)
 {
     dict *d = malloc(sizeof(dict));
@@ -29,19 +77,7 @@ void dict_deinit(dict *d)
 {
     if (!d)
         return;
-    if (d->data) {
-        for (int i = 0; i < d->capacity; ++i) {
-            ll_node *prev = NULL;
-            ll_node *curr = d->data[i];
-            while (curr) {
-                prev = curr;
-                curr = curr->next;
-                free(prev->data);
-                free(prev);
-            }
-        }
-        free(d->data);
-    }
+    free_dict_data(d);
     free(d);
 }
 
@@ -50,7 +86,9 @@ void dict_insert(dict *d, char *key, uint16_t value)
     if (!d || !key)
         return;
 
-    uint64_t index = fnv_1a(key, strlen(key)) % d->capacity;
+    size_t keylen = strlen(key);
+
+    uint64_t index = fnv_1a(key, keylen) % d->capacity;
 
     kvp *k = malloc(sizeof(kvp));
     if (!k)
@@ -72,10 +110,11 @@ void dict_insert(dict *d, char *key, uint16_t value)
     } else {
         ll_node *prev = NULL;
         ll_node *curr = d->data[index];
+
         while (curr) {
             prev = curr;
             curr = curr->next;
-            if (strcmp(prev->data->key, key) == 0) {
+            if (strncmp(prev->data->key, key, keylen) == 0) {
                 prev->data->value = value;
                 --(d->size);
                 free(n->data);
@@ -83,7 +122,12 @@ void dict_insert(dict *d, char *key, uint16_t value)
                 return;
             }
         }
+
         prev->next = n;
+    }
+
+    if ((double)d->size / (double)d->capacity > MAX_LOAD_FACTOR) {
+        rehash(d);
     }
 }
 
