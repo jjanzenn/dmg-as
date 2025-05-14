@@ -71,7 +71,6 @@ void test_rehash_when_past_load_factor(void)
     }
 }
 
-// not needed when using generate_test_runner.rb
 int main(void)
 {
     UNITY_BEGIN();
