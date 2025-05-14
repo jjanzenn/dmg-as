@@ -2,6 +2,7 @@
 #include "unity.h"
 #include "unity_internals.h"
 #include <stdint.h>
+#include <stdio.h>
 
 dict *d;
 
@@ -58,10 +59,17 @@ void test_rehash_when_past_load_factor(void)
     TEST_ASSERT_EQUAL_UINT(0, d->size);
 
     for (int i = 0; i < 1024; ++i) {
-        dict_insert(d, keys[i], 0xABCD);
+        dict_insert(d, keys[i], i);
         TEST_ASSERT_EQUAL_UINT(i + 1, d->size);
     }
     TEST_ASSERT_EQUAL_UINT(2048, d->capacity);
+
+    uint16_t *newdata = NULL;
+    for (uint16_t i = 0; i < 1024; ++i) {
+        newdata = dict_get(d, keys[i]);
+        TEST_ASSERT_NOT_NULL(newdata);
+        TEST_ASSERT_EQUAL_UINT16(i, *newdata);
+    }
 }
 
 // not needed when using generate_test_runner.rb

@@ -139,11 +139,14 @@ uint16_t *dict_get(dict *d, char *key)
     uint64_t index = fnv_1a(key, strlen(key)) % d->capacity;
 
     ll_node *curr = d->data[index];
+    uint16_t *out = NULL;
     while (curr) {
         if (strcmp(key, curr->data->key) == 0) {
-            return &curr->data->value;
+            out = &curr->data->value;
+            break;
         }
+        curr = curr->next;
     }
 
-    return NULL;
+    return out;
 }
