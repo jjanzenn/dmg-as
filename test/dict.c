@@ -1,6 +1,5 @@
 #include "dict.h"
 #include "unity.h"
-#include "unity_internals.h"
 #include <stdint.h>
 #include <stdio.h>
 
