@@ -1,7 +1,7 @@
 #ifndef _LEXER_H_
 #define _LEXER_H_
 
-#include "dict.h"
+#include <stdint.h>
 #include <stdio.h>
 
 typedef enum inst {
@@ -79,6 +79,7 @@ typedef union token_val {
     cond_t cond;
     inst_t inst;
     char *label;
+    char *labeldef;
 } token_val;
 
 typedef enum token_type {
@@ -87,6 +88,7 @@ typedef enum token_type {
     toktype_COND,
     toktype_INST,
     toktype_LABEL,
+    toktype_LABELDEF,
 } token_type;
 
 typedef struct token {
@@ -95,10 +97,11 @@ typedef struct token {
 } token;
 
 typedef struct lexer {
-    dict *d;
     token *tokens;
 } lexer;
 
 lexer lex(FILE *f);
+
+char *next_token(FILE *f);
 
 #endif

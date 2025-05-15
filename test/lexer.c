@@ -1,4 +1,4 @@
-#include "token.h"
+#include "lexer.h"
 #include "config.h"
 #include "unity.h"
 #include <stdio.h>

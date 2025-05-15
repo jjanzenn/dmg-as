@@ -14,5 +14,5 @@ unity_dep = dependency('unity', version : '2.6.0')
 dict_test = executable('dict_test', 'test/dict.c', 'dict.c', 'hash.c', dependencies : [unity_dep])
 test('dictionary works', dict_test)
 
-token_test = executable('token_test', 'test/token.c', 'token.c', dependencies : [unity_dep])
-test('dictionary works', token_test)
+lexer_test = executable('lexer_test', 'test/lexer.c', 'lexer.c', dependencies : [unity_dep])
+test('lexer works', lexer_test)
