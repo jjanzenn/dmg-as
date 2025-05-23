@@ -1,6 +1,10 @@
 %{
 #include <stdlib.h>
 #include <string.h>
+
+#include "dmg.tab.h"
+
+extern YYSTYPE yylval;
 %}
 
 %%
@@ -68,9 +72,9 @@ NZ { return NZ; }
 
 [a-zA-Z_][a-zA-Z0-9_]* {
     yylval.str = calloc(yyleng + 1, 1);
-    if (!yylval.str) return LABEL;
+    if (!yylval.str) return SYMBOL;
     memcpy(yylval.str, yytext, yyleng);
-    return LABEL;
+    return SYMBOL;
 }
 
 '$'[0-9a-fA-F]+ {

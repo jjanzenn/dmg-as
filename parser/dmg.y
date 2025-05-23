@@ -1,9 +1,15 @@
+%define parse.error verbose
+
 %{
 #define _XOPEN_SOURCE 600
 #include <stdlib.h>
+#include <stdio.h>
+#include <stdint.h>
 
 int yylex(void);
 int yyerror(const char *s);
+
+unsigned int position = 0;
 %}
 
 %union
@@ -86,7 +92,9 @@ file:           line
 
 line:           NEWLINE
         |       command NEWLINE
-        |       SYMBOL ':' line
+        |       SYMBOL ':' {
+    printf("symbol: %s has position %04x\n", $1, position);
+ }
         ;
 
 command:        nop
@@ -416,11 +424,18 @@ command:        nop
         |       set_u3_a
         ;
 
-integer:        NUM
-        |       SYMBOL
+integer:        NUM {
+    printf("%04x\n", yylval.num);
+                }
+        |       SYMBOL {
+    puts(yylval.str);
+ }
         ;
 
-nop:            NOP
+nop:            NOP {
+    position += 1;
+    printf("NOP (0x00)\n");
+ }
         ;
 
 ld_bc_u16:      LD BC ',' integer

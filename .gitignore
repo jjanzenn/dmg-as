@@ -5,3 +5,9 @@
 /.cache/
 /build/
 /compile_commands.json
+/parser/dmg
+/parser/dmg.lex.c
+/parser/dmg.lex.o
+/parser/dmg.tab.c
+/parser/dmg.tab.h
+/parser/dmg.tab.o
