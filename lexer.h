@@ -96,11 +96,7 @@ typedef struct token {
     token_type type;
 } token;
 
-typedef struct lexer {
-    token *tokens;
-} lexer;
-
-lexer lex(FILE *f);
+token **lex(FILE *f);
 
 char *next_token(FILE *f);
 

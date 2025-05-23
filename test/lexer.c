@@ -104,6 +104,32 @@ void test_get_each_token(void)
     free(tokens);
 }
 
+void test_lex_file()
+{
+    token **tokens = malloc(sizeof(token) * 100);
+    tokens[0] = malloc(sizeof(token) * 2);
+    tokens[0][0].type = toktype_LABELDEF;
+    tokens[0][0].value.labeldef = malloc(strlen("_main") + 1);
+    strcpy(tokens[0][0].value.labeldef, "_main");
+    tokens[0][1].type = toktype_INST;
+    tokens[0][1].value.inst = inst_NOP;
+
+    tokens[1] = malloc(sizeof(token) * 3);
+    tokens[1][0].type = toktype_INST;
+    tokens[1][0].value.inst = inst_LD;
+    tokens[1][1].type = toktype_REG;
+    tokens[1][1].value.reg = reg_B;
+    tokens[1][2].value.reg = reg_C;
+
+    tokens[2] = malloc(sizeof(token));
+    tokens[2][0].type = toktype_LABELDEF;
+    tokens[2][0].value.labeldef = malloc(strlen("label1") + 1);
+
+    tokens[3] = malloc(sizeof(token) * 2);
+    tokens[3][0].type = toktype_INST;
+    tokens[3][0].value.inst = inst_POP;
+}
+
 int main(void)
 {
     UNITY_BEGIN();

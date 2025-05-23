@@ -104,11 +104,4 @@ char *next_token(FILE *f)
     return str;
 }
 
-lexer lex(FILE *f)
-{
-    lexer result = {
-        .tokens = NULL,
-    };
-
-    return result;
-}
+token **lex(FILE *f) { return NULL; }
