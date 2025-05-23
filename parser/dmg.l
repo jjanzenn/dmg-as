@@ -54,6 +54,7 @@ BC { return BC; }
 DE { return DE; }
 HL { return HL; }
 SP { return SP; }
+AF { return AF; }
 A { return A; }
 B { return B; }
 C { return C; }
@@ -82,5 +83,14 @@ NZ { return NZ; }
     return NUM;
 }
 
+';' {
+    int c = input();
+    while (c != EOF && c != '\n' && c != '\r')
+        c = input();
+    unput(c);
+    continue;
+}
+
+[ \t\f]* { continue; }
 \n|\r\n { return NEWLINE; }
 . { return *yytext; }
