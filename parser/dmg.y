@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <stdint.h>
 
+#include "../parser.h"
+
 int yylex(void);
 int yyerror(const char *s);
 
@@ -16,7 +18,12 @@ unsigned int position = 0;
 {
     char *str;
     uint16_t num;
+    struct dmg_int_container *int_container;
+    struct dmg_instruction *instruction;
 }
+
+%type   <int_container> integer;
+%type   <instruction>   command;
 
 %token LD
 %token LDH
@@ -83,7 +90,6 @@ unsigned int position = 0;
 %token  <num>           NUM
 %token NEWLINE
 
-
 %%
 
 file:           line
@@ -92,1320 +98,1859 @@ file:           line
 
 line:           NEWLINE
         |       command NEWLINE
-        |       SYMBOL ':' {
-    printf("symbol: %s has position %04x\n", $1, position);
- }
-        ;
-
-command:        nop
-        |       ld_bc_u16
-        |       ld_bc_addr_a
-        |       inc_bc
-        |       inc_b
-        |       dec_b
-        |       ld_b_u8
-        |       rlca
-        |       ld_u16_addr_sp
-        |       add_hl_bc
-        |       ld_a_bc_addr
-        |       dec_bc
-        |       inc_c
-        |       dec_c
-        |       ld_c_u8
-        |       rrca
-        |       stop
-        |       ld_de_u16
-        |       ld_de_addr_a
-        |       inc_de
-        |       inc_d
-        |       dec_d
-        |       ld_d_u8
-        |       rla
-        |       jr_i8
-        |       add_hl_de
-        |       ld_a_de_addr
-        |       dec_de
-        |       inc_e
-        |       dec_e
-        |       ld_e_u8
-        |       rra
-        |       jr_nz_i8
-        |       ld_hl_u16
-        |       ld_hli_addr_a
-        |       inc_hl
-        |       inc_h
-        |       dec_h
-        |       ld_h_u8
-        |       daa
-        |       jr_z_i8
-        |       add_hl_hl
-        |       ld_a_hli_addr
-        |       dec_hl
-        |       inc_l
-        |       dec_l
-        |       ld_l_u8
-        |       cpl
-        |       jr_nc_i8
-        |       ld_sp_u16
-        |       ld_hld_addr_a
-        |       inc_sp
-        |       inc_hl_addr
-        |       dec_hl_addr
-        |       ld_hl_addr_u8
-        |       scf
-        |       jr_c_i8
-        |       add_hl_sp
-        |       ld_a_hld_addr
-        |       dec_sp
-        |       inc_a
-        |       dec_a
-        |       ld_a_u8
-        |       ccf
-        |       ld_b_b
-        |       ld_b_c
-        |       ld_b_d
-        |       ld_b_e
-        |       ld_b_h
-        |       ld_b_l
-        |       ld_b_hl_addr
-        |       ld_b_a
-        |       ld_c_b
-        |       ld_c_c
-        |       ld_c_d
-        |       ld_c_e
-        |       ld_c_h
-        |       ld_c_l
-        |       ld_c_hl_addr
-        |       ld_c_a
-        |       ld_d_b
-        |       ld_d_c
-        |       ld_d_d
-        |       ld_d_e
-        |       ld_d_h
-        |       ld_d_l
-        |       ld_d_hl_addr
-        |       ld_d_a
-        |       ld_e_b
-        |       ld_e_c
-        |       ld_e_d
-        |       ld_e_e
-        |       ld_e_h
-        |       ld_e_l
-        |       ld_e_hl_addr
-        |       ld_e_a
-        |       ld_h_b
-        |       ld_h_c
-        |       ld_h_d
-        |       ld_h_e
-        |       ld_h_h
-        |       ld_h_l
-        |       ld_h_hl_addr
-        |       ld_h_a
-        |       ld_l_b
-        |       ld_l_c
-        |       ld_l_d
-        |       ld_l_e
-        |       ld_l_h
-        |       ld_l_l
-        |       ld_l_hl_addr
-        |       ld_l_a
-        |       ld_hl_addr_b
-        |       ld_hl_addr_c
-        |       ld_hl_addr_d
-        |       ld_hl_addr_e
-        |       ld_hl_addr_h
-        |       ld_hl_addr_l
-        |       halt
-        |       ld_hl_addr_a
-        |       ld_a_b
-        |       ld_a_c
-        |       ld_a_d
-        |       ld_a_e
-        |       ld_a_h
-        |       ld_a_l
-        |       ld_a_hl_addr
-        |       ld_a_a
-        |       add_a_b
-        |       add_a_c
-        |       add_a_d
-        |       add_a_e
-        |       add_a_h
-        |       add_a_l
-        |       add_a_hl_addr
-        |       add_a_a
-        |       adc_a_b
-        |       adc_a_c
-        |       adc_a_d
-        |       adc_a_e
-        |       adc_a_h
-        |       adc_a_l
-        |       adc_a_hl_addr
-        |       adc_a_a
-        |       sub_a_b
-        |       sub_a_c
-        |       sub_a_d
-        |       sub_a_e
-        |       sub_a_h
-        |       sub_a_l
-        |       sub_a_hl_addr
-        |       sub_a_a
-        |       sbc_a_b
-        |       sbc_a_c
-        |       sbc_a_d
-        |       sbc_a_e
-        |       sbc_a_h
-        |       sbc_a_l
-        |       sbc_a_hl_addr
-        |       sbc_a_a
-        |       and_a_b
-        |       and_a_c
-        |       and_a_d
-        |       and_a_e
-        |       and_a_h
-        |       and_a_l
-        |       and_a_hl_addr
-        |       and_a_a
-        |       xor_a_b
-        |       xor_a_c
-        |       xor_a_d
-        |       xor_a_e
-        |       xor_a_h
-        |       xor_a_l
-        |       xor_a_hl_addr
-        |       xor_a_a
-        |       or_a_b
-        |       or_a_c
-        |       or_a_d
-        |       or_a_e
-        |       or_a_h
-        |       or_a_l
-        |       or_a_hl_addr
-        |       or_a_a
-        |       cp_a_b
-        |       cp_a_c
-        |       cp_a_d
-        |       cp_a_e
-        |       cp_a_h
-        |       cp_a_l
-        |       cp_a_hl_addr
-        |       cp_a_a
-        |       ret_nz
-        |       pop_bc
-        |       jp_nz_u16
-        |       jp_u16
-        |       call_nz_u16
-        |       push_bc
-        |       add_a_u8
-        |       rst_u3
-        |       ret_z
-        |       ret
-        |       jp_z_u16
-        |       call_z_u16
-        |       call_u16
-        |       adc_a_u8
-        |       ret_nc
-        |       pop_de
-        |       jp_nc_u16
-        |       call_nc_u16
-        |       push_de
-        |       sub_a_u8
-        |       ret_c
-        |       reti
-        |       jp_c_u16
-        |       call_c_u16
-        |       sbc_a_u8
-        |       ldh_u8_addr_a
-        |       pop_hl
-        |       ldh_c_addr_a
-        |       push_hl
-        |       and_a_u8
-        |       add_sp_i8
-        |       jp_hl
-        |       ld_u16_addr_a
-        |       xor_a_u8
-        |       ldh_a_u8_addr
-        |       pop_af
-        |       ldh_a_c_addr
-        |       di
-        |       push_af
-        |       or_a_u8
-        |       ld_hl_sp_i8
-        |       ld_sp_hl
-        |       ld_a_u16_addr
-        |       ei
-        |       cp_a_u8
-        |       rlc_b
-        |       rlc_c
-        |       rlc_d
-        |       rlc_e
-        |       rlc_h
-        |       rlc_l
-        |       rlc_hl_addr
-        |       rlc_a
-        |       rrc_b
-        |       rrc_c
-        |       rrc_d
-        |       rrc_e
-        |       rrc_h
-        |       rrc_l
-        |       rrc_hl_addr
-        |       rrc_a
-        |       rl_b
-        |       rl_c
-        |       rl_d
-        |       rl_e
-        |       rl_h
-        |       rl_l
-        |       rl_hl_addr
-        |       rl_a
-        |       rr_b
-        |       rr_c
-        |       rr_d
-        |       rr_e
-        |       rr_h
-        |       rr_l
-        |       rr_hl_addr
-        |       rr_a
-        |       sla_b
-        |       sla_c
-        |       sla_d
-        |       sla_e
-        |       sla_h
-        |       sla_l
-        |       sla_hl_addr
-        |       sla_a
-        |       sra_b
-        |       sra_c
-        |       sra_d
-        |       sra_e
-        |       sra_h
-        |       sra_l
-        |       sra_hl_addr
-        |       sra_a
-        |       swap_b
-        |       swap_c
-        |       swap_d
-        |       swap_e
-        |       swap_h
-        |       swap_l
-        |       swap_hl_addr
-        |       swap_a
-        |       srl_b
-        |       srl_c
-        |       srl_d
-        |       srl_e
-        |       srl_h
-        |       srl_l
-        |       srl_hl_addr
-        |       srl_a
-        |       bit_u3_b
-        |       bit_u3_c
-        |       bit_u3_d
-        |       bit_u3_e
-        |       bit_u3_h
-        |       bit_u3_l
-        |       bit_u3_hl_addr
-        |       bit_u3_a
-        |       res_u3_b
-        |       res_u3_c
-        |       res_u3_d
-        |       res_u3_e
-        |       res_u3_h
-        |       res_u3_l
-        |       res_u3_hl_addr
-        |       res_u3_a
-        |       set_u3_b
-        |       set_u3_c
-        |       set_u3_d
-        |       set_u3_e
-        |       set_u3_h
-        |       set_u3_l
-        |       set_u3_hl_addr
-        |       set_u3_a
+        |       SYMBOL ':'
         ;
 
 integer:        NUM {
-    printf("%04x\n", yylval.num);
+                    $$ = calloc(sizeof(dmg_int_container), 1);
+                    $$->value.num = yylval.num;
+                    $$->type = DMG_INT_CONTAINER_NUM;
                 }
         |       SYMBOL {
-    puts(yylval.str);
- }
-        ;
-
-nop:            NOP {
-    position += 1;
-    printf("NOP (0x00)\n");
- }
-        ;
-
-ld_bc_u16:      LD BC ',' integer
-        ;
-
-ld_bc_addr_a:   LD '(' BC ')' ',' A
-        ;
-
-inc_bc:         INC BC
-        ;
-
-inc_b:          INC B
-        ;
-
-dec_b:          DEC B
-        ;
-
-ld_b_u8:        LD B ',' integer
-        ;
-
-rlca:           RLCA
-        ;
-
-ld_u16_addr_sp: LD '(' integer ')' ',' SP
-        ;
-
-add_hl_bc:      ADD HL ',' BC
-        ;
-
-ld_a_bc_addr:   LD A ',' '(' BC ')'
-        ;
-
-dec_bc:         DEC BC
-        ;
-
-inc_c:          INC C
-        ;
-
-dec_c:          DEC C
-        ;
-
-ld_c_u8:        LD C ',' integer
-        ;
-
-rrca:           RRCA
-        ;
-
-stop:           STOP
-        ;
-
-ld_de_u16:      LD DE ',' integer
-        ;
-
-ld_de_addr_a:   LD '(' DE ')' ',' A
-        ;
-
-inc_de:         INC DE
-        ;
-
-inc_d:          INC D
-        ;
-
-dec_d:          DEC D
-        ;
-
-ld_d_u8:        LD D integer
-        ;
-
-rla:            RLA
-        ;
-
-jr_i8:          JR integer
-        ;
-
-add_hl_de:      ADD HL ',' DE
-        ;
-
-ld_a_de_addr:   LD A ',' '(' DE ')'
-        ;
-
-dec_de:         DEC DE
-        ;
-
-inc_e:          INC E
-        ;
-
-dec_e:          DEC E
-        ;
-
-ld_e_u8:        LD E ',' integer
-        ;
-
-rra:            RRA
-        ;
-
-jr_nz_i8:       JR NZ ',' integer
-        ;
-
-ld_hl_u16:      LD HL ',' integer
-        ;
-
-ld_hli_addr_a:  LD '(' HL '+' ')' ',' A
-        ;
-
-inc_hl:         INC HL
-        ;
-
-inc_h:          INC H
-        ;
-
-dec_h:          DEC H
-        ;
-
-ld_h_u8:        LD H ',' integer
-        ;
-
-daa:            DAA
-        ;
-
-jr_z_i8:        JR Z ',' integer
-        ;
-
-add_hl_hl:      ADD HL ',' HL
-        ;
-
-ld_a_hli_addr:  LD A ',' '(' HL '+' ')'
-        ;
-
-dec_hl:         DEC HL
-        ;
-
-inc_l:          INC L
-        ;
-
-dec_l:          DEC L
-        ;
-
-ld_l_u8:        LD L ',' integer
-        ;
-
-cpl:            CPL
-        ;
-
-jr_nc_i8:       JR NC ',' integer
-        ;
-
-ld_sp_u16:      LD SP ',' integer
-        ;
-
-ld_hld_addr_a:  LD '(' HL '-' ')' ',' A
-        ;
-
-inc_sp:         INC SP
-        ;
-
-inc_hl_addr:    INC '(' HL ')'
-        ;
-
-dec_hl_addr:    DEC '(' HL ')'
-        ;
-
-ld_hl_addr_u8:  LD '(' HL ')' ',' integer
-        ;
-
-scf:            SCF
-        ;
-
-jr_c_i8:        JR C ',' integer
-        ;
-
-add_hl_sp:      ADD HL ',' SP
-        ;
-
-ld_a_hld_addr:  LD A ',' '(' HL '-' ')'
-        ;
-
-dec_sp:         DEC SP
-        ;
-
-inc_a:          INC A
-        ;
-
-dec_a:          DEC A
-        ;
-
-ld_a_u8:        LD A ',' integer
-        ;
-
-ccf:            CCF
-        ;
-
-ld_b_b:         LD B ',' B
-        ;
-
-ld_b_c:         LD B ',' C
-        ;
-
-ld_b_d:         LD B ',' D
-        ;
-
-ld_b_e:         LD B ',' E
-        ;
-
-ld_b_h:         LD B ',' H
-        ;
-
-ld_b_l:         LD B ',' L
-        ;
-
-ld_b_hl_addr:   LD B ',' '(' HL ')'
-        ;
-
-ld_b_a:         LD B ',' A
-        ;
-
-ld_c_b:         LD C ',' B
-        ;
-
-ld_c_c:         LD C ',' C
-        ;
-
-ld_c_d:         LD C ',' D
-        ;
-
-ld_c_e:         LD C ',' E
-        ;
-
-ld_c_h:         LD C ',' H
-        ;
-
-ld_c_l:         LD C ',' L
-        ;
-
-ld_c_hl_addr:   LD C ',' '(' HL ')'
-        ;
-
-ld_c_a:         LD C ',' A
-        ;
-
-ld_d_b:         LD D ',' B
-        ;
-
-ld_d_c:         LD D ',' C
-        ;
-
-ld_d_d:         LD D ',' D
-        ;
-
-ld_d_e:         LD D ',' E
-        ;
-
-ld_d_h:         LD D ',' H
-        ;
-
-ld_d_l:         LD D ',' L
-        ;
-
-ld_d_hl_addr:   LD D ',' '(' HL ')'
-        ;
-
-ld_d_a:         LD D ',' A
-        ;
-
-ld_e_b:         LD E ',' B
-        ;
-
-ld_e_c:         LD E ',' C
-        ;
-
-ld_e_d:         LD E ',' D
-        ;
-
-ld_e_e:         LD E ',' E
-        ;
-
-ld_e_h:         LD E ',' H
-        ;
-
-ld_e_l:         LD E ',' L
-        ;
-
-ld_e_hl_addr:   LD E ',' '(' HL ')'
-        ;
-
-ld_e_a:         LD E ',' A
-        ;
-
-ld_h_b:         LD H ',' B
-        ;
-
-ld_h_c:         LD H ',' C
-        ;
-
-ld_h_d:         LD H ',' D
-        ;
-
-ld_h_e:         LD H ',' E
-        ;
-
-ld_h_h:         LD H ',' H
-        ;
-
-ld_h_l:         LD H ',' L
-        ;
-
-ld_h_hl_addr:   LD H ',' '(' HL ')'
-        ;
-
-ld_h_a:         LD H ',' A
-        ;
-
-ld_l_b:         LD L ',' B
-        ;
-
-ld_l_c:         LD L ',' C
-        ;
-
-ld_l_d:         LD L ',' D
-        ;
-
-ld_l_e:         LD L ',' E
-        ;
-
-ld_l_h:         LD L ',' H
-        ;
-
-ld_l_l:         LD L ',' L
-        ;
-
-ld_l_hl_addr:   LD L ',' '(' HL ')'
-        ;
-
-ld_l_a:         LD L ',' A
-        ;
-
-ld_hl_addr_b:         LD '(' HL ')' ',' B
-        ;
-
-ld_hl_addr_c:         LD '(' HL ')' ',' C
-        ;
-
-ld_hl_addr_d:         LD '(' HL ')' ',' D
-        ;
-
-ld_hl_addr_e:         LD '(' HL ')' ',' E
-        ;
-
-ld_hl_addr_h:         LD '(' HL ')' ',' H
-        ;
-
-ld_hl_addr_l:         LD '(' HL ')' ',' L
-        ;
-
-halt:           HALT
-        ;
-
-ld_hl_addr_a:         LD '(' HL ')' ',' A
-        ;
-
-ld_a_b:         LD A ',' B
-        ;
-
-ld_a_c:         LD A ',' C
-        ;
-
-ld_a_d:         LD A ',' D
-        ;
-
-ld_a_e:         LD A ',' E
-        ;
-
-ld_a_h:         LD A ',' H
-        ;
-
-ld_a_l:         LD A ',' L
-        ;
-
-ld_a_hl_addr:   LD A ',' '(' HL ')'
-        ;
-
-ld_a_a:         LD A ',' A
-        ;
-
-add_a_b:        ADD A ',' B
-        ;
-
-add_a_c:        ADD A ',' C
-        ;
-
-add_a_d:        ADD A ',' D
-        ;
-
-add_a_e:        ADD A ',' E
-        ;
-
-add_a_h:        ADD A ',' H
-        ;
-
-add_a_l:        ADD A ',' L
-        ;
-
-add_a_hl_addr:  ADD A ',' '(' HL ')'
-        ;
-
-add_a_a:        ADD A ',' A
-        ;
-
-adc_a_b:        ADC A ',' B
-        ;
-
-adc_a_c:        ADC A ',' C
-        ;
-
-adc_a_d:        ADC A ',' D
-        ;
-
-adc_a_e:        ADC A ',' E
-        ;
-
-adc_a_h:        ADC A ',' H
-        ;
-
-adc_a_l:        ADC A ',' L
-        ;
-
-adc_a_hl_addr:  ADC A ',' '(' HL ')'
-        ;
-
-adc_a_a:        ADC A ',' A
-        ;
-
-sub_a_b:        SUB A ',' B
-        ;
-
-sub_a_c:        SUB A ',' C
-        ;
-
-sub_a_d:        SUB A ',' D
-        ;
-
-sub_a_e:        SUB A ',' E
-        ;
-
-sub_a_h:        SUB A ',' H
-        ;
-
-sub_a_l:        SUB A ',' L
-        ;
-
-sub_a_hl_addr:  SUB A ',' '(' HL ')'
-        ;
-
-sub_a_a:        SUB A ',' A
-        ;
-
-sbc_a_b:        SBC A ',' B
-        ;
-
-sbc_a_c:        SBC A ',' C
-        ;
-
-sbc_a_d:        SBC A ',' D
-        ;
-
-sbc_a_e:        SBC A ',' E
-        ;
-
-sbc_a_h:        SBC A ',' H
-        ;
-
-sbc_a_l:        SBC A ',' L
-        ;
-
-sbc_a_hl_addr:  SBC A ',' '(' HL ')'
-        ;
-
-sbc_a_a:        SBC A ',' A
-        ;
-
-and_a_b:        AND A ',' B
-        ;
-
-and_a_c:        AND A ',' C
-        ;
-
-and_a_d:        AND A ',' D
-        ;
-
-and_a_e:        AND A ',' E
-        ;
-
-and_a_h:        AND A ',' H
-        ;
-
-and_a_l:        AND A ',' L
-        ;
-
-and_a_hl_addr:  AND A ',' '(' HL ')'
-        ;
-
-and_a_a:        AND A ',' A
-        ;
-
-xor_a_b:        XOR A ',' B
-        ;
-
-xor_a_c:        XOR A ',' C
-        ;
-
-xor_a_d:        XOR A ',' D
-        ;
-
-xor_a_e:        XOR A ',' E
-        ;
-
-xor_a_h:        XOR A ',' H
-        ;
-
-xor_a_l:        XOR A ',' L
-        ;
-
-xor_a_hl_addr:  XOR A ',' '(' HL ')'
-        ;
-
-xor_a_a:        XOR A ',' A
-        ;
-
-or_a_b:         OR A ',' B
-        ;
-
-or_a_c:         OR A ',' C
-        ;
-
-or_a_d:         OR A ',' D
-        ;
-
-or_a_e:         OR A ',' E
-        ;
-
-or_a_h:         OR A ',' H
-        ;
-
-or_a_l:         OR A ',' L
-        ;
-
-or_a_hl_addr:   OR A ',' '(' HL ')'
-        ;
-
-or_a_a:         OR A ',' A
-        ;
-
-cp_a_b:         CP A ',' B
-        ;
-
-cp_a_c:         CP A ',' C
-        ;
-
-cp_a_d:         CP A ',' D
-        ;
-
-cp_a_e:         CP A ',' E
-        ;
-
-cp_a_h:         CP A ',' H
-        ;
-
-cp_a_l:         CP A ',' L
-        ;
-
-cp_a_hl_addr:   CP A ',' '(' HL ')'
-        ;
-
-cp_a_a:         CP A ',' A
-        ;
-
-ret_nz:         RET NZ
-        ;
-
-pop_bc:         POP BC
-        ;
-
-jp_nz_u16:      JP NZ ',' integer
-        ;
-
-jp_u16:         JP integer
-        ;
-
-call_nz_u16:    CALL NZ ',' integer
-        ;
-
-push_bc:        PUSH BC
-        ;
-
-add_a_u8:       ADD A integer
-        ;
-
-rst_u3:         RST NUM
-        ;
-
-ret_z:          RET Z
-        ;
-
-ret:            RET
-        ;
-
-jp_z_u16:       JP Z ',' integer
-        ;
-
-call_z_u16:     CALL Z ',' integer
-        ;
-
-call_u16:       CALL integer
-        ;
-
-adc_a_u8:       ADC A ',' integer
-        ;
-
-ret_nc:         RET NC
-        ;
-
-pop_de:         POP DE
-        ;
-
-jp_nc_u16:      JP NC ',' integer
-        ;
-
-call_nc_u16:    CALL NC ',' integer
-        ;
-
-push_de:        PUSH DE
-        ;
-
-sub_a_u8:       SUB A ',' integer
-        ;
-
-ret_c:          RET C
-        ;
-
-reti:           RETI
-        ;
-
-jp_c_u16:       JP C ',' integer
-        ;
-
-call_c_u16:     CALL C ',' integer
-        ;
-
-sbc_a_u8:       SBC A ',' integer
-        ;
-
-ldh_u8_addr_a:  LDH '(' integer ')' ',' A
-        ;
-
-pop_hl:         POP HL
-        ;
-
-ldh_c_addr_a:   LDH '(' C ')' ',' A
-        ;
-
-push_hl:        PUSH HL
-        ;
-
-and_a_u8:       AND A ',' integer
-        ;
-
-add_sp_i8:      ADD SP ',' integer
-        ;
-
-jp_hl:          JP HL
-        ;
-
-ld_u16_addr_a:  LD '(' integer ')' ',' A
-        ;
-
-xor_a_u8:       XOR A ',' integer
-        ;
-
-ldh_a_u8_addr:  LDH A ',' '(' integer ')'
-        ;
-
-pop_af:         POP AF
-        ;
-
-ldh_a_c_addr:   LDH A ',' '(' C ')'
-        ;
-
-di:             DI
-        ;
-
-push_af:        PUSH AF
-        ;
-
-or_a_u8:        OR A ',' integer
-        ;
-
-ld_hl_sp_i8:    LD HL ',' SP '+' integer
-        ;
-
-ld_sp_hl:       LD SP ',' HL
-        ;
-
-ld_a_u16_addr:  LD A '(' integer ')'
-        ;
-
-ei:             EI
-        ;
-
-cp_a_u8:        CP A ',' integer
-        ;
-
-rlc_b:          RLC B
-        ;
-
-rlc_c:          RLC C
-        ;
-
-rlc_d:          RLC D
-        ;
-
-rlc_e:          RLC E
-        ;
-
-rlc_h:          RLC H
-        ;
-
-rlc_l:          RLC L
-        ;
-
-rlc_hl_addr:    RLC '(' HL ')'
-        ;
-
-rlc_a:          RLC A
-        ;
-
-rrc_b:          RRC B
-        ;
-
-rrc_c:          RRC C
-        ;
-
-rrc_d:          RRC D
-        ;
-
-rrc_e:          RRC E
-        ;
-
-rrc_h:          RRC H
-        ;
-
-rrc_l:          RRC L
-        ;
-
-rrc_hl_addr:    RRC '(' HL ')'
-        ;
-
-rrc_a:          RRC A
-        ;
-
-rl_b:          RL B
-        ;
-
-rl_c:          RL C
-        ;
-
-rl_d:          RL D
-        ;
-
-rl_e:          RL E
-        ;
-
-rl_h:          RL H
-        ;
-
-rl_l:          RL L
-        ;
-
-rl_hl_addr:    RL '(' HL ')'
-        ;
-
-rl_a:          RL A
-        ;
-
-rr_b:          RR B
-        ;
-
-rr_c:          RR C
-        ;
-
-rr_d:          RR D
-        ;
-
-rr_e:          RR E
-        ;
-
-rr_h:          RR H
-        ;
-
-rr_l:          RR L
-        ;
-
-rr_hl_addr:    RR '(' HL ')'
-        ;
-
-rr_a:          RR A
-        ;
-
-sla_b:          SLA B
-        ;
-
-sla_c:          SLA C
-        ;
-
-sla_d:          SLA D
-        ;
-
-sla_e:          SLA E
-        ;
-
-sla_h:          SLA H
-        ;
-
-sla_l:          SLA L
-        ;
-
-sla_hl_addr:    SLA '(' HL ')'
-        ;
-
-sla_a:          SLA A
-        ;
-
-sra_b:          SRA B
-        ;
-
-sra_c:          SRA C
-        ;
-
-sra_d:          SRA D
-        ;
-
-sra_e:          SRA E
-        ;
-
-sra_h:          SRA H
-        ;
-
-sra_l:          SRA L
-        ;
-
-sra_hl_addr:    SRA '(' HL ')'
-        ;
-
-sra_a:          SRA A
-        ;
-
-swap_b:          SWAP B
-        ;
-
-swap_c:          SWAP C
-        ;
-
-swap_d:          SWAP D
-        ;
-
-swap_e:          SWAP E
-        ;
-
-swap_h:          SWAP H
-        ;
-
-swap_l:          SWAP L
-        ;
-
-swap_hl_addr:    SWAP '(' HL ')'
-        ;
-
-swap_a:          SWAP A
-        ;
-
-srl_b:          SRL B
-        ;
-
-srl_c:          SRL C
-        ;
-
-srl_d:          SRL D
-        ;
-
-srl_e:          SRL E
-        ;
-
-srl_h:          SRL H
-        ;
-
-srl_l:          SRL L
-        ;
-
-srl_hl_addr:    SRL '(' HL ')'
-        ;
-
-srl_a:          SRL A
-        ;
-
-bit_u3_b:          BIT NUM B
-        ;
-
-bit_u3_c:          BIT NUM C
-        ;
-
-bit_u3_d:          BIT NUM D
-        ;
-
-bit_u3_e:          BIT NUM E
-        ;
-
-bit_u3_h:          BIT NUM H
-        ;
-
-bit_u3_l:          BIT NUM L
-        ;
-
-bit_u3_hl_addr:    BIT NUM '(' HL ')'
-        ;
-
-bit_u3_a:          BIT NUM A
-        ;
-
-res_u3_b:          RES NUM B
-        ;
-
-res_u3_c:          RES NUM C
-        ;
-
-res_u3_d:          RES NUM D
-        ;
-
-res_u3_e:          RES NUM E
-        ;
-
-res_u3_h:          RES NUM H
-        ;
-
-res_u3_l:          RES NUM L
-        ;
-
-res_u3_hl_addr:    RES NUM '(' HL ')'
-        ;
-
-res_u3_a:          RES NUM A
-        ;
-
-set_u3_b:          SET NUM B
-        ;
-
-set_u3_c:          SET NUM C
-        ;
-
-set_u3_d:          SET NUM D
-        ;
-
-set_u3_e:          SET NUM E
-        ;
-
-set_u3_h:          SET NUM H
-        ;
-
-set_u3_l:          SET NUM L
-        ;
-
-set_u3_hl_addr:    SET NUM '(' HL ')'
-        ;
-
-set_u3_a:          SET NUM A
+                    $$ = calloc(sizeof(dmg_int_container), 1);
+                    $$->value.label = yylval.str;
+                    $$->type = DMG_INT_CONTAINER_LABEL;
+                }
+        ;
+
+command:        NOP {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x00;
+                    position += 1;
+                }
+        |       LD BC ',' integer {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x01;
+                    $$->suffix = $4;
+                    position += 3;
+                }
+        |       LD '(' BC ')' ',' A {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x02;
+                    position += 1;
+                }
+        |       INC BC {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x03;
+                    position += 1;
+                }
+        |       INC B {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x04;
+                    position += 1;
+                }
+        |       DEC B {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x05;
+                    position += 1;
+                }
+        |       LD B ',' integer {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x06;
+                    $$->suffix = $4;
+                    position += 2;
+                }
+        |       RLCA {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x07;
+                    position += 1;
+                }
+        |       LD '(' integer ')' ',' SP {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x08;
+                    position += 1;
+                }
+        |       ADD HL ',' BC {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x09;
+                    position += 1;
+                }
+        |       LD A ',' '(' BC ')' {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x0A;
+                    position += 1;
+                }
+        |       DEC BC {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x0B;
+                    position += 1;
+                }
+        |       INC C {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x0C;
+                    position += 1;
+                }
+        |       DEC C {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x0D;
+                    position += 1;
+                }
+        |       LD C ',' integer {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x0E;
+                    position += 1;
+                }
+        |       RRCA {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x0F;
+                    position += 1;
+                }
+        |       STOP {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x10;
+                    $$->suffix = calloc(sizeof(dmg_int_container), 1);
+                    $$->suffix->value.num = 0x00;
+                    $$->suffix->type = DMG_INT_CONTAINER_NUM;
+                    position += 2;
+                }
+        |       LD DE ',' integer {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x11;
+                    $$->suffix = $4;
+                    position += 3;
+                }
+        |       LD '(' DE ')' ',' A {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x12;
+                    position += 1;
+                }
+        |       INC DE {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x13;
+                    position += 1;
+                }
+        |       INC D {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x14;
+                    position += 1;
+                }
+        |       DEC D {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x15;
+                    position += 1;
+                }
+        |       LD D ',' integer {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x16;
+                    $$->suffix = $4;
+                    position += 2;
+                }
+        |       RLA {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x17;
+                    position += 1;
+                }
+        |       JR integer {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x18;
+                    $$->suffix = $2;
+                    position += 2;
+                }
+        |       ADD HL ',' DE {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x19;
+                    position += 1;
+                }
+        |       LD A ',' '(' DE ')' {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x1A;
+                    position += 1;
+                }
+        |       DEC DE {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x1B;
+                    position += 1;
+                }
+        |       INC E {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x1C;
+                    position += 1;
+                }
+        |       DEC E {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x1D;
+                    position += 1;
+                }
+        |       LD E ',' integer {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x1E;
+                    $$->suffix = $4;
+                    position += 2;
+                }
+        |       RRA {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x1F;
+                    position += 1;
+                }
+        |       JR NZ ',' integer {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x20;
+                    $$->suffix = $4;
+                    position += 2;
+                }
+        |       LD HL ',' integer {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x21;
+                    $$->suffix = $4;
+                    position += 3;
+                }
+        |       LD '(' HL '+' ')' ',' A {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x22;
+                    position += 1;
+                }
+        |       INC HL {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x23;
+                    position += 1;
+                }
+        |       INC H {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x24;
+                    position += 1;
+                }
+        |       DEC H {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x25;
+                    position += 1;
+                }
+        |       LD H ',' integer {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x26;
+                    $$->suffix = $4;
+                    position += 2;
+                }
+        |       DAA {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x27;
+                    position += 1;
+                }
+        |       JR Z ',' integer {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x28;
+                    $$->suffix = $4;
+                    position += 2;
+                }
+        |       ADD HL ',' HL {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x29;
+                    position += 1;
+                }
+        |       LD A ',' '(' HL '+' ')' {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x2A;
+                    position += 1;
+                }
+        |       DEC HL {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x2B;
+                    position += 1;
+                }
+        |       INC L {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x2C;
+                    position += 1;
+                }
+        |       DEC L {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x2D;
+                    position += 1;
+                }
+        |       LD L ',' integer {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x2E;
+                    position += 2;
+                }
+        |       CPL {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x2F;
+                    position += 1;
+                }
+        |       JR NC ',' integer {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x30;
+                    $$->suffix = $4;
+                    position += 2;
+                }
+        |       LD SP ',' integer {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x31;
+                    $$->suffix = $4;
+                    position += 3;
+                }
+        |       LD '(' HL '-' ')' ',' A {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x32;
+                    position += 1;
+                }
+        |       INC SP {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x33;
+                    position += 1;
+                }
+        |       INC '(' HL ')' {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x34;
+                    position += 1;
+                }
+        |       DEC '(' HL ')' {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x35;
+                    position += 1;
+                }
+        |       LD '(' HL ')' ',' integer {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x36;
+                    $$->suffix = $6;
+                    position += 2;
+                }
+        |       SCF {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x37;
+                    position += 1;
+                }
+        |       JR C ',' integer {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x38;
+                    $$->suffix = $4;
+                    position += 2;
+                }
+        |       ADD HL ',' SP {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x39;
+                    position += 1;
+                }
+        |       LD A ',' '(' HL '-' ')' {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x3A;
+                    position += 1;
+                }
+        |       DEC SP {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x3B;
+                    position += 1;
+                }
+        |       INC A {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x3C;
+                    position += 1;
+                }
+        |       DEC A {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x3D;
+                    position += 1;
+                }
+        |       LD A ',' integer {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x3E;
+                    $$->suffix = $4;
+                    position += 2;
+                }
+        |       CCF {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x3F;
+                    position += 1;
+                }
+        |       LD B ',' B {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x40;
+                    position += 1;
+                }
+        |       LD B ',' C {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x41;
+                    position += 1;
+                }
+        |       LD B ',' D {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x42;
+                    position += 1;
+                }
+        |       LD B ',' E {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x43;
+                    position += 1;
+                }
+        |       LD B ',' H {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x44;
+                    position += 1;
+                }
+        |       LD B ',' L {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x45;
+                    position += 1;
+                }
+        |       LD B ',' '(' HL ')' {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x46;
+                    position += 1;
+                }
+        |       LD B ',' A {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x47;
+                    position += 1;
+                }
+        |       LD C ',' B {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x48;
+                    position += 1;
+                }
+        |       LD C ',' C {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x49;
+                    position += 1;
+                }
+        |       LD C ',' D {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x4A;
+                    position += 1;
+                }
+        |       LD C ',' E {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x4B;
+                    position += 1;
+                }
+        |       LD C ',' H {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x4C;
+                    position += 1;
+                }
+        |       LD C ',' L {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x4D;
+                    position += 1;
+                }
+        |       LD C ',' '(' HL ')' {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x4E;
+                    position += 1;
+                }
+        |       LD C ',' A {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x4F;
+                    position += 1;
+                }
+        |       LD D ',' B {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x50;
+                    position += 1;
+                }
+        |       LD D ',' C {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x51;
+                    position += 1;
+                }
+        |       LD D ',' D {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x52;
+                    position += 1;
+                }
+        |       LD D ',' E {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x53;
+                    position += 1;
+                }
+        |       LD D ',' H {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x54;
+                    position += 1;
+                }
+        |       LD D ',' L {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x55;
+                    position += 1;
+                }
+        |       LD D ',' '(' HL ')' {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x56;
+                    position += 1;
+                }
+        |       LD D ',' A {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x57;
+                    position += 1;
+                }
+        |       LD E ',' B {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x58;
+                    position += 1;
+                }
+        |       LD E ',' C {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x59;
+                    position += 1;
+                }
+        |       LD E ',' D {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x5A;
+                    position += 1;
+                }
+        |       LD E ',' E {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x5B;
+                    position += 1;
+                }
+        |       LD E ',' H {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x5C;
+                    position += 1;
+                }
+        |       LD E ',' L {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x5D;
+                    position += 1;
+                }
+        |       LD E ',' '(' HL ')' {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x5E;
+                    position += 1;
+                }
+        |       LD E ',' A {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x5F;
+                    position += 1;
+                }
+        |       LD H ',' B {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x60;
+                    position += 1;
+                }
+        |       LD H ',' C {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x61;
+                    position += 1;
+                }
+        |       LD H ',' D {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x62;
+                    position += 1;
+                }
+        |       LD H ',' E {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x63;
+                    position += 1;
+                }
+        |       LD H ',' H {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x64;
+                    position += 1;
+                }
+        |       LD H ',' L {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x65;
+                    position += 1;
+                }
+        |       LD H ',' '(' HL ')' {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x66;
+                    position += 1;
+                }
+        |       LD H ',' A {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x67;
+                    position += 1;
+                }
+        |       LD L ',' B {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x68;
+                    position += 1;
+                }
+        |       LD L ',' C {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x69;
+                    position += 1;
+                }
+        |       LD L ',' D {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x6A;
+                    position += 1;
+                }
+        |       LD L ',' E {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x6B;
+                    position += 1;
+                }
+        |       LD L ',' H {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x6C;
+                    position += 1;
+                }
+        |       LD L ',' L {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x6D;
+                    position += 1;
+                }
+        |       LD L ',' '(' HL ')' {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x6E;
+                    position += 1;
+                }
+        |       LD L ',' A {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x6F;
+                    position += 1;
+                }
+        |       LD '(' HL ')' ',' B {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x70;
+                    position += 1;
+                }
+        |       LD '(' HL ')' ',' C {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x71;
+                    position += 1;
+                }
+        |       LD '(' HL ')' ',' D {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x72;
+                    position += 1;
+                }
+        |       LD '(' HL ')' ',' E {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x73;
+                    position += 1;
+                }
+        |       LD '(' HL ')' ',' H {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x74;
+                    position += 1;
+                }
+        |       LD '(' HL ')' ',' L {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x75;
+                    position += 1;
+                }
+        |       HALT {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x76;
+                    position += 1;
+                }
+        |       LD '(' HL ')' ',' A {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x77;
+                    position += 1;
+                }
+        |       LD A ',' B {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x78;
+                    position += 1;
+                }
+        |       LD A ',' C {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x79;
+                    position += 1;
+                }
+        |       LD A ',' D {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x7A;
+                    position += 1;
+                }
+        |       LD A ',' E {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x7B;
+                    position += 1;
+                }
+        |       LD A ',' H {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x7C;
+                    position += 1;
+                }
+        |       LD A ',' L {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x7D;
+                    position += 1;
+                }
+        |       LD A ',' '(' HL ')' {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x7E;
+                    position += 1;
+                }
+        |       LD A ',' A {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x7F;
+                    position += 1;
+                }
+        |       ADD A ',' B {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x80;
+                    position += 1;
+                }
+        |       ADD A ',' C {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x81;
+                    position += 1;
+                }
+        |       ADD A ',' D {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x82;
+                    position += 1;
+                }
+        |       ADD A ',' E {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x83;
+                    position += 1;
+                }
+        |       ADD A ',' H {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x84;
+                    position += 1;
+                }
+        |       ADD A ',' L {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x85;
+                    position += 1;
+                }
+        |       ADD A ',' '(' HL ')' {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x86;
+                    position += 1;
+                }
+        |       ADD A ',' A {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x87;
+                    position += 1;
+                }
+        |       ADC A ',' B {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x88;
+                    position += 1;
+                }
+        |       ADC A ',' C {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x89;
+                    position += 1;
+                }
+        |       ADC A ',' D {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x8A;
+                    position += 1;
+                }
+        |       ADC A ',' E {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x8B;
+                    position += 1;
+                }
+        |       ADC A ',' H {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x8C;
+                    position += 1;
+                }
+        |       ADC A ',' L {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x8D;
+                    position += 1;
+                }
+        |       ADC A ',' '(' HL ')' {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x8E;
+                    position += 1;
+                }
+        |       ADC A ',' A {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x8F;
+                    position += 1;
+                }
+        |       SUB A ',' B {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x90;
+                    position += 1;
+                }
+        |       SUB A ',' C {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x91;
+                    position += 1;
+                }
+        |       SUB A ',' D {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x92;
+                    position += 1;
+                }
+        |       SUB A ',' E {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x93;
+                    position += 1;
+                }
+        |       SUB A ',' H {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x94;
+                    position += 1;
+                }
+        |       SUB A ',' L {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x95;
+                    position += 1;
+                }
+        |       SUB A ',' '(' HL ')' {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x96;
+                    position += 1;
+                }
+        |       SUB A ',' A {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x97;
+                    position += 1;
+                }
+        |       SBC A ',' B {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x98;
+                    position += 1;
+                }
+        |       SBC A ',' C {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x99;
+                    position += 1;
+                }
+        |       SBC A ',' D {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x9A;
+                    position += 1;
+                }
+        |       SBC A ',' E {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x9B;
+                    position += 1;
+                }
+        |       SBC A ',' H {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x9C;
+                    position += 1;
+                }
+        |       SBC A ',' L {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x9D;
+                    position += 1;
+                }
+        |       SBC A ',' '(' HL ')' {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x9E;
+                    position += 1;
+                }
+        |       SBC A ',' A {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x9F;
+                    position += 1;
+                }
+        |       AND A ',' B {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xA0;
+                    position += 1;
+                }
+        |       AND A ',' C {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xA1;
+                    position += 1;
+                }
+        |       AND A ',' D {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xA2;
+                    position += 1;
+                }
+        |       AND A ',' E {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xA3;
+                    position += 1;
+                }
+        |       AND A ',' H {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xA4;
+                    position += 1;
+                }
+        |       AND A ',' L {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xA5;
+                    position += 1;
+                }
+        |       AND A ',' '(' HL ')' {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xA6;
+                    position += 1;
+                }
+        |       AND A ',' A {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xA7;
+                    position += 1;
+                }
+        |       XOR A ',' B {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xA8;
+                    position += 1;
+                }
+        |       XOR A ',' C {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xA9;
+                    position += 1;
+                }
+        |       XOR A ',' D {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xAA;
+                    position += 1;
+                }
+        |       XOR A ',' E {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xAB;
+                    position += 1;
+                }
+        |       XOR A ',' H {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xAC;
+                    position += 1;
+                }
+        |       XOR A ',' L {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xAD;
+                    position += 1;
+                }
+        |       XOR A ',' '(' HL ')' {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xAE;
+                    position += 1;
+                }
+        |       XOR A ',' A {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xAF;
+                    position += 1;
+                }
+        |       OR A ',' B {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xB0;
+                    position += 1;
+                }
+        |       OR A ',' C {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xB1;
+                    position += 1;
+                }
+        |       OR A ',' D {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xB2;
+                    position += 1;
+                }
+        |       OR A ',' E {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xB3;
+                    position += 1;
+                }
+        |       OR A ',' H {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xB4;
+                    position += 1;
+                }
+        |       OR A ',' L {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xB5;
+                    position += 1;
+                }
+        |       OR A ',' '(' HL ')' {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xB6;
+                    position += 1;
+                }
+        |       OR A ',' A {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xB7;
+                    position += 1;
+                }
+        |       CP A ',' B {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xB8;
+                    position += 1;
+                }
+        |       CP A ',' C {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xB9;
+                    position += 1;
+                }
+        |       CP A ',' D {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xBA;
+                    position += 1;
+                }
+        |       CP A ',' E {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xBB;
+                    position += 1;
+                }
+        |       CP A ',' H {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xBC;
+                    position += 1;
+                }
+        |       CP A ',' L {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xBD;
+                    position += 1;
+                }
+        |       CP A ',' '(' HL ')' {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xBE;
+                    position += 1;
+                }
+        |       CP A ',' A {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xBF;
+                    position += 1;
+                }
+        |       RET NZ {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xC0;
+                    position += 1;
+                }
+        |       POP BC {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xC1;
+                    position += 1;
+                }
+        |       JP NZ ',' integer {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xC2;
+                    $$->suffix = $4;
+                    position += 3;
+                }
+        |       JP integer {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xC3;
+                    $$->suffix = $2;
+                    position += 3;
+                }
+        |       CALL NZ ',' integer {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xC4;
+                    $$->suffix = $4;
+                    position += 3;
+                }
+        |       PUSH BC {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xC5;
+                    position += 1;
+                }
+        |       ADD A ',' integer {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xC6;
+                    $$->suffix = $4;
+                    position += 2;
+                }
+        |       RST NUM {
+                    if ($2 >= 8 || $2 < 0) {
+                        yyerror("RST argument out of bounds");
+                        YYERROR;
+                    }
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    switch ($2) {
+                        case 0: $$->opcode = 0xC7; break;
+                        case 1: $$->opcode = 0xCF; break;
+                        case 2: $$->opcode = 0xD7; break;
+                        case 3: $$->opcode = 0xDF; break;
+                        case 4: $$->opcode = 0xE7; break;
+                        case 5: $$->opcode = 0xEF; break;
+                        case 6: $$->opcode = 0xF7; break;
+                        case 7: $$->opcode = 0xFF; break;
+                    }
+                    position += 1;
+                }
+        |       RET Z {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xC8;
+                    position += 1;
+                }
+        |       RET {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xC9;
+                    position += 1;
+                }
+        |       JP Z ',' integer {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xCA;
+                    $$->suffix = $4;
+                    position += 3;
+                }
+        |       CALL Z ',' integer {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xCC;
+                    $$->suffix = $4;
+                    position += 3;
+                }
+        |       CALL integer {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xCD;
+                    $$->suffix = $2;
+                    position += 3;
+                }
+        |       ADC A ',' integer {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xCE;
+                    $$->suffix = $4;
+                    position += 2;
+                }
+        |       RET NC {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xD0;
+                    position += 1;
+                }
+        |       POP DE {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xD1;
+                    position += 1;
+                }
+        |       JP NC ',' integer {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xD2;
+                    $$->suffix = $4;
+                    position += 3;
+                }
+        |       CALL NC ',' integer {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xD4;
+                    $$->suffix = $4;
+                    position += 3;
+                }
+        |       PUSH DE {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xD5;
+                    position += 1;
+                }
+        |       SUB A ',' integer {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xD6;
+                    $$->suffix = $4;
+                    position += 2;
+                }
+        |       RET C {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xD8;
+                    position += 1;
+                }
+        |       RETI {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xD9;
+                    position += 1;
+                }
+        |       JP C ',' integer {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xDA;
+                    $$->suffix = $4;
+                    position += 3;
+                }
+        |       CALL C ',' integer {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xDC;
+                    $$->suffix = $4;
+                    position += 3;
+                }
+        |       SBC A ',' integer {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xDE;
+                    $$->suffix = $4;
+                    position += 2;
+                }
+        |       LDH '(' integer ')' ',' A {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xE0;
+                    $$->suffix = $3;
+                    position += 3;
+                }
+        |       POP HL {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xE1;
+                    position += 1;
+                }
+        |       LDH '(' C ')' ',' A {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xE3;
+                    position += 1;
+                }
+        |       PUSH HL {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xE5;
+                    position += 1;
+                }
+        |       AND A ',' integer {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xE6;
+                    $$->suffix = $4;
+                    position += 2;
+                }
+        |       ADD SP ',' integer {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xE8;
+                    $$->suffix = $4;
+                    position += 2;
+                }
+        |       JP HL {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xE9;
+                    position += 1;
+                }
+        |       LD '(' integer ')' ',' A {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xEA;
+                    $$->suffix = $3;
+                    position += 3;
+                }
+        |       XOR A ',' integer {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xEE;
+                    $$->suffix = $4;
+                    position += 2;
+                }
+        |       LDH A ',' '(' integer ')' {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xF0;
+                    $$->suffix = $5;
+                    position += 3;
+                }
+        |       POP AF {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xF1;
+                    position += 1;
+                }
+        |       LDH A ',' '(' C ')' {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xF2;
+                    position += 1;
+                }
+        |       DI {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xF3;
+                    position += 1;
+                }
+        |       PUSH AF {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xF5;
+                    position += 1;
+                }
+        |       OR A ',' integer {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xF6;
+                    $$->suffix = $4;
+                    position += 2;
+                }
+        |       LD HL ',' SP '+' integer {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xF8;
+                    $$->suffix = $6;
+                    position += 2;
+                }
+        |       LD SP ',' HL {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xF9;
+                    position += 1;
+                }
+        |       LD A '(' integer ')' {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xFA;
+                    $$->suffix = $4;
+                    position += 3;
+                }
+        |       EI {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xFB;
+                    position += 1;
+                }
+        |       CP A ',' integer {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xFE;
+                    $$->suffix = $4;
+                    position += 2;
+                }
+        |       RLC B {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x00;
+                    position += 2;
+                }
+        |       RLC C {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x01;
+                    position += 2;
+                }
+        |       RLC D {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x02;
+                    position += 2;
+                }
+        |       RLC E {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x03;
+                    position += 2;
+                }
+        |       RLC H {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x04;
+                    position += 2;
+                }
+        |       RLC L {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x05;
+                    position += 2;
+                }
+        |       RLC '(' HL ')' {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x06;
+                    position += 2;
+                }
+        |       RLC A {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x07;
+                    position += 2;
+                }
+        |       RRC B {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x08;
+                    position += 2;
+                }
+        |       RRC C {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x09;
+                    position += 2;
+                }
+        |       RRC D {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x0A;
+                    position += 2;
+                }
+        |       RRC E {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x0B;
+                    position += 2;
+                }
+        |       RRC H {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x0C;
+                    position += 2;
+                }
+        |       RRC L {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x0D;
+                    position += 2;
+                }
+        |       RRC '(' HL ')' {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x0E;
+                    position += 2;
+                }
+        |       RRC A {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x0F;
+                    position += 2;
+                }
+        |       RL B {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x10;
+                    position += 2;
+                }
+        |       RL C {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x11;
+                    position += 2;
+                }
+        |       RL D {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x12;
+                    position += 2;
+                }
+        |       RL E {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x13;
+                    position += 2;
+                }
+        |       RL H {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x14;
+                    position += 2;
+                }
+        |       RL L {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x15;
+                    position += 2;
+                }
+        |       RL '(' HL ')' {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x16;
+                    position += 2;
+                }
+        |       RL A {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x17;
+                    position += 2;
+                }
+        |       RR B {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x18;
+                    position += 2;
+                }
+        |       RR C {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x19;
+                    position += 2;
+                }
+        |       RR D {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x1A;
+                    position += 2;
+                }
+        |       RR E {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x1B;
+                    position += 2;
+                }
+        |       RR H {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x1C;
+                    position += 2;
+                }
+        |       RR L {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x1D;
+                    position += 2;
+                }
+        |       RR '(' HL ')' {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x1E;
+                    position += 2;
+                }
+        |       RR A {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x1F;
+                    position += 2;
+                }
+        |       SLA B {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x20;
+                    position += 2;
+                }
+        |       SLA C {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x21;
+                    position += 2;
+                }
+        |       SLA D {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x22;
+                    position += 2;
+                }
+        |       SLA E {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x23;
+                    position += 2;
+                }
+        |       SLA H {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x24;
+                    position += 2;
+                }
+        |       SLA L {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x25;
+                    position += 2;
+                }
+        |       SLA '(' HL ')' {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x26;
+                    position += 2;
+                }
+        |       SLA A {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x27;
+                    position += 2;
+                }
+        |       SRA B {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x28;
+                    position += 2;
+                }
+        |       SRA C {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x29;
+                    position += 2;
+                }
+        |       SRA D {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x2A;
+                    position += 2;
+                }
+        |       SRA E {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x2B;
+                    position += 2;
+                }
+        |       SRA H {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x2C;
+                    position += 2;
+                }
+        |       SRA L {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x2D;
+                    position += 2;
+                }
+        |       SRA '(' HL ')' {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x2E;
+                    position += 2;
+                }
+        |       SRA A {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x2F;
+                    position += 2;
+                }
+        |       SWAP B {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x30;
+                    position += 2;
+                }
+        |       SWAP C {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x31;
+                    position += 2;
+                }
+        |       SWAP D {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x32;
+                    position += 2;
+                }
+        |       SWAP E {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x33;
+                    position += 2;
+                }
+        |       SWAP H {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x34;
+                    position += 2;
+                }
+        |       SWAP L {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x35;
+                    position += 2;
+                }
+        |       SWAP '(' HL ')' {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x36;
+                    position += 2;
+                }
+        |       SWAP A {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x37;
+                    position += 2;
+                }
+        |       SRL B {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x38;
+                    position += 2;
+                }
+        |       SRL C {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x39;
+                    position += 2;
+                }
+        |       SRL D {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x3A;
+                    position += 2;
+                }
+        |       SRL E {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x3B;
+                    position += 2;
+                }
+        |       SRL H {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x3C;
+                    position += 2;
+                }
+        |       SRL L {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x3D;
+                    position += 2;
+                }
+        |       SRL '(' HL ')' {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x3E;
+                    position += 2;
+                }
+        |       SRL A {
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->prefix = 1;
+                    $$->opcode = 0x3F;
+                    position += 2;
+                }
+        |       BIT NUM ',' B {
+                    if ($2 >= 8 || $2 < 0) {
+                        yyerror("BIT argument out of bounds");
+                        YYERROR;
+                    }
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x40 + ($2 * 0x08);
+                    position += 2;
+                }
+        |       BIT NUM ',' C {
+                    if ($2 >= 8 || $2 < 0) {
+                        yyerror("BIT argument out of bounds");
+                        YYERROR;
+                    }
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x41 + ($2 * 0x08);
+                    position += 2;
+                }
+        |       BIT NUM ',' D {
+                    if ($2 >= 8 || $2 < 0) {
+                        yyerror("BIT argument out of bounds");
+                        YYERROR;
+                    }
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x42 + ($2 * 0x08);
+                    position += 2;
+                }
+        |       BIT NUM ',' E {
+                    if ($2 >= 8 || $2 < 0) {
+                        yyerror("BIT argument out of bounds");
+                        YYERROR;
+                    }
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x43 + ($2 * 0x08);
+                    position += 2;
+                }
+        |       BIT NUM ',' H {
+                    if ($2 >= 8 || $2 < 0) {
+                        yyerror("BIT argument out of bounds");
+                        YYERROR;
+                    }
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x44 + ($2 * 0x08);
+                    position += 2;
+                }
+        |       BIT NUM ',' L {
+                    if ($2 >= 8 || $2 < 0) {
+                        yyerror("BIT argument out of bounds");
+                        YYERROR;
+                    }
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x45 + ($2 * 0x08);
+                    position += 2;
+                }
+        |       BIT NUM ',' '(' HL ')' {
+                    if ($2 >= 8 || $2 < 0) {
+                        yyerror("BIT argument out of bounds");
+                        YYERROR;
+                    }
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x46 + ($2 * 0x08);
+                    position += 2;
+                }
+        |       BIT NUM ',' A {
+                    if ($2 >= 8 || $2 < 0) {
+                        yyerror("BIT argument out of bounds");
+                        YYERROR;
+                    }
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x47 + ($2 * 0x08);
+                    position += 2;
+                }
+        |       RES NUM ',' B {
+                    if ($2 >= 8 || $2 < 0) {
+                        yyerror("RES argument out of bounds");
+                        YYERROR;
+                    }
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x80 + ($2 * 0x08);
+                    position += 2;
+                }
+        |       RES NUM ',' C {
+                    if ($2 >= 8 || $2 < 0) {
+                        yyerror("RES argument out of bounds");
+                        YYERROR;
+                    }
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x81 + ($2 * 0x08);
+                    position += 2;
+                }
+        |       RES NUM ',' D {
+                    if ($2 >= 8 || $2 < 0) {
+                        yyerror("RES argument out of bounds");
+                        YYERROR;
+                    }
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x82 + ($2 * 0x08);
+                    position += 2;
+                }
+        |       RES NUM ',' E {
+                    if ($2 >= 8 || $2 < 0) {
+                        yyerror("RES argument out of bounds");
+                        YYERROR;
+                    }
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x83 + ($2 * 0x08);
+                    position += 2;
+                }
+        |       RES NUM ',' H {
+                    if ($2 >= 8 || $2 < 0) {
+                        yyerror("RES argument out of bounds");
+                        YYERROR;
+                    }
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x84 + ($2 * 0x08);
+                    position += 2;
+                }
+        |       RES NUM ',' L {
+                    if ($2 >= 8 || $2 < 0) {
+                        yyerror("RES argument out of bounds");
+                        YYERROR;
+                    }
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x85 + ($2 * 0x08);
+                    position += 2;
+                }
+        |       RES NUM ',' '(' HL ')' {
+                    if ($2 >= 8 || $2 < 0) {
+                        yyerror("RES argument out of bounds");
+                        YYERROR;
+                    }
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x86 + ($2 * 0x08);
+                    position += 2;
+                }
+        |       RES NUM ',' A {
+                    if ($2 >= 8 || $2 < 0) {
+                        yyerror("RES argument out of bounds");
+                        YYERROR;
+                    }
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0x87 + ($2 * 0x08);
+                    position += 2;
+                }
+        |       SET NUM ',' B {
+                    if ($2 >= 8 || $2 < 0) {
+                        yyerror("SET argument out of bounds");
+                        YYERROR;
+                    }
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xC0 + ($2 * 0x08);
+                    position += 2;
+                }
+        |       SET NUM ',' C {
+                    if ($2 >= 8 || $2 < 0) {
+                        yyerror("SET argument out of bounds");
+                        YYERROR;
+                    }
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xC1 + ($2 * 0x08);
+                    position += 2;
+                }
+        |       SET NUM ',' D {
+                    if ($2 >= 8 || $2 < 0) {
+                        yyerror("SET argument out of bounds");
+                        YYERROR;
+                    }
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xC2 + ($2 * 0x08);
+                    position += 2;
+                }
+        |       SET NUM ',' E {
+                    if ($2 >= 8 || $2 < 0) {
+                        yyerror("SET argument out of bounds");
+                        YYERROR;
+                    }
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xC3 + ($2 * 0x08);
+                    position += 2;
+                }
+        |       SET NUM ',' H {
+                    if ($2 >= 8 || $2 < 0) {
+                        yyerror("SET argument out of bounds");
+                        YYERROR;
+                    }
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xC4 + ($2 * 0x08);
+                    position += 2;
+                }
+        |       SET NUM ',' L {
+                    if ($2 >= 8 || $2 < 0) {
+                        yyerror("SET argument out of bounds");
+                        YYERROR;
+                    }
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xC5 + ($2 * 0x08);
+                    position += 2;
+                }
+        |       SET NUM ',' '(' HL ')' {
+                    if ($2 >= 8 || $2 < 0) {
+                        yyerror("SET argument out of bounds");
+                        YYERROR;
+                    }
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xC6 + ($2 * 0x08);
+                    position += 2;
+                }
+        |       SET NUM ',' A {
+                    if ($2 >= 8 || $2 < 0) {
+                        yyerror("SET argument out of bounds");
+                        YYERROR;
+                    }
+                    $$ = calloc(sizeof(dmg_instruction), 1);
+                    $$->opcode = 0xC7 + ($2 * 0x08);
+                    position += 2;
+                }
         ;

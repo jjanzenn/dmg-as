@@ -7,6 +7,8 @@
 extern YYSTYPE yylval;
 %}
 
+%option caseless
+
 %%
 
 LD { return LD; }
@@ -77,7 +79,7 @@ NZ { return NZ; }
     return SYMBOL;
 }
 
-'$'[0-9a-fA-F]+ {
+"$"[0-9a-fA-F]+ {
     yylval.num = strtol(&yytext[1], NULL, 16);
     return NUM;
 }
@@ -87,7 +89,7 @@ NZ { return NZ; }
     return NUM;
 }
 
-';' {
+";" {
     int c = input();
     while (c != EOF && c != '\n' && c != '\r')
         c = input();
