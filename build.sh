@@ -1,5 +1,7 @@
 #!/bin/sh
 
+set -e
+
 if [ "$(uname -s)" = 'Darwin' ]; then
     echo Building on macOS, setting up paths...
     if [ "$(uname -p)" = 'arm' ]; then
@@ -19,3 +21,4 @@ mkdir -p build/
 cd build/ || exit
 cmake ..
 make
+make test
