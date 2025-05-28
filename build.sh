@@ -1,6 +1,7 @@
 #!/bin/sh
 
 if [ "$(uname -s)" = 'Darwin' ]; then
+    echo Building on macOS, setting up paths...
     if [ "$(uname -p)" = 'arm' ]; then
         echo Apple Silicon detected...
         export CMAKE_INCLUDE_PATH=/opt/homebrew/opt/flex/include
