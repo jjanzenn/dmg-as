@@ -17,6 +17,7 @@ typedef struct dmg_int_container {
 typedef struct dmg_instruction {
     int prefix;
     uint8_t opcode;
+    uint32_t position;
     dmg_int_container *suffix;
 } dmg_instruction;
 

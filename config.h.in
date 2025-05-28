@@ -1,7 +1,0 @@
-#ifndef _CONFIG_H_
-#define _CONFIG_H_
-
-#define VERSION_STR "@version@"
-#define PROJECT_ROOT "@project_root@"
-
-#endif

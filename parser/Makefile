@@ -10,4 +10,4 @@ dmg.lex.c: dmg.l
 	$(LEX) -t $? > $@
 
 clean:
-	rm -f dmg.lex.c dmg.tab.c dmg.tab.h dmg.tab.o dmg.lex.o
+	rm -f dmg dmg.lex.c dmg.tab.c dmg.tab.h dmg.tab.o dmg.lex.o
