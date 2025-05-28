@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define _XOPEN_SOURCE 600
+
 #define DEFAULT_CAPACITY 1024
 #define MAX_LOAD_FACTOR 0.7
 
@@ -19,6 +21,7 @@ static void free_dict_data(dict *d)
             while (curr) {
                 prev = curr;
                 curr = curr->next;
+                free(prev->data->key);
                 free(prev->data);
                 free(prev);
             }
@@ -93,7 +96,11 @@ void dict_insert(dict *d, char *key, uint16_t value)
     kvp *k = malloc(sizeof(kvp));
     if (!k)
         return;
-    k->key = key;
+    k->key = strdup(key);
+    if (!k->key) {
+        free(k);
+        return;
+    }
     k->value = value;
 
     ll_node *n = malloc(sizeof(ll_node));
@@ -117,6 +124,7 @@ void dict_insert(dict *d, char *key, uint16_t value)
             if (strncmp(prev->data->key, key, keylen) == 0) {
                 prev->data->value = value;
                 --(d->size);
+                free(n->data->key);
                 free(n->data);
                 free(n);
                 return;
