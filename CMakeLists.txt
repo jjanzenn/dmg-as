@@ -20,3 +20,11 @@ add_executable(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
   ${FLEX_LIBRARIES}
 )
+
+enable_testing()
+
+add_executable(TestDict test/dict.c src/dict.c src/hash.c)
+target_link_libraries(TestDict unity)
+add_test(NAME TestDict COMMAND TestDict)
+
+add_subdirectory(deps/Unity)
