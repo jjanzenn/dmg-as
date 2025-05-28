@@ -14,6 +14,9 @@ add_flex_bison_dependency(dmgLexer dmgParser)
 include_directories(${CMAKE_CURRENT_BINARY_DIR} include/)
 
 add_executable(${PROJECT_NAME}
+  src/main.c
+  src/dict.c
+  src/hash.c
   ${BISON_dmgParser_OUTPUTS}
   ${FLEX_dmgLexer_OUTPUTS}
 )

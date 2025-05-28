@@ -1,30 +1,39 @@
 %define parse.error verbose
 
 %{
-#define _XOPEN_SOURCE 600
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <string.h>
 
-#include "../include/parser.h"
-#include "../include/dict.h"
+#include "parser.h"
+#include "dict.h"
 
 int yylex(void);
-int yyerror(const char *s);
+int yyerror(dmg_parse_result *result, const char *s);
 
 unsigned int position = 0;
 %}
 
+%code requires
+{
+    #include "parser.h"
+    #include <stdint.h>
+}
+
+%parse-param {dmg_parse_result *result}
+
 %union
 {
     char *str;
-    uint16_t num;
-    struct dmg_int_container *int_container;
-    struct dmg_instruction *instruction;
+    uint32_t num;
+    dmg_int_container *int_container;
+    dmg_instruction *instruction;
 }
 
 %type   <int_container> integer;
 %type   <instruction>   command;
+%type   <instruction>   line;
 
 %token LD
 %token LDH
@@ -93,13 +102,45 @@ unsigned int position = 0;
 
 %%
 
-file:           line
-        |       file line
+file:           line {
+                         if ($1)
+                             dmg_parse_result_append(result, $1);
+                     }
+        |       file line {
+                         if ($2)
+                             dmg_parse_result_append(result, $2);
+                     }
         ;
 
-line:           NEWLINE
-        |       command NEWLINE
-        |       SYMBOL ':'
+line:           NEWLINE {
+    $$ = NULL;
+ }
+        |       command NEWLINE {
+    $$ = $1;
+ }
+        |       SYMBOL ':' {
+                               if (strcmp($1, "_main") == 0) {
+                                   position = 0x100;
+                               } else if (strcmp($1, "_vblank") == 0) {
+                                   position = 0x40;
+                               } else if (strcmp($1, "_stat") == 0) {
+                                   position = 0x48;
+                               } else if (strcmp($1, "_timer") == 0) {
+                                   position = 0x50;
+                               } else if (strcmp($1, "_serial") == 0) {
+                                   position = 0x58;
+                               } else if (strcmp($1, "_joypad") == 0) {
+                                   position = 0x60;
+                               }
+
+                               if (dict_get(result->labels, $1) == NULL) {
+                                   dict_insert(result->labels, $1, position);
+                               } else {
+                                   yyerror(result, "Duplicate label");
+                                   YYERROR;
+                               }
+                               $$ = NULL;
+                          }
         ;
 
 integer:        NUM {
@@ -1533,7 +1574,7 @@ command:        NOP {
                 }
         |       RST NUM {
                     if ($2 >= 8 || $2 < 0) {
-                        yyerror("RST argument out of bounds");
+                        yyerror(result, "RST argument out of bounds");
                         YYERROR;
                     }
                     $$ = calloc(sizeof(dmg_instruction), 1);
@@ -2344,7 +2385,7 @@ command:        NOP {
                 }
         |       BIT NUM ',' B {
                     if ($2 >= 8 || $2 < 0) {
-                        yyerror("BIT argument out of bounds");
+                        yyerror(result, "BIT argument out of bounds");
                         YYERROR;
                     }
                     $$ = calloc(sizeof(dmg_instruction), 1);
@@ -2355,7 +2396,7 @@ command:        NOP {
                 }
         |       BIT NUM ',' C {
                     if ($2 >= 8 || $2 < 0) {
-                        yyerror("BIT argument out of bounds");
+                        yyerror(result, "BIT argument out of bounds");
                         YYERROR;
                     }
                     $$ = calloc(sizeof(dmg_instruction), 1);
@@ -2366,7 +2407,7 @@ command:        NOP {
                 }
         |       BIT NUM ',' D {
                     if ($2 >= 8 || $2 < 0) {
-                        yyerror("BIT argument out of bounds");
+                        yyerror(result, "BIT argument out of bounds");
                         YYERROR;
                     }
                     $$ = calloc(sizeof(dmg_instruction), 1);
@@ -2377,7 +2418,7 @@ command:        NOP {
                 }
         |       BIT NUM ',' E {
                     if ($2 >= 8 || $2 < 0) {
-                        yyerror("BIT argument out of bounds");
+                        yyerror(result, "BIT argument out of bounds");
                         YYERROR;
                     }
                     $$ = calloc(sizeof(dmg_instruction), 1);
@@ -2388,7 +2429,7 @@ command:        NOP {
                 }
         |       BIT NUM ',' H {
                     if ($2 >= 8 || $2 < 0) {
-                        yyerror("BIT argument out of bounds");
+                        yyerror(result, "BIT argument out of bounds");
                         YYERROR;
                     }
                     $$ = calloc(sizeof(dmg_instruction), 1);
@@ -2399,7 +2440,7 @@ command:        NOP {
                 }
         |       BIT NUM ',' L {
                     if ($2 >= 8 || $2 < 0) {
-                        yyerror("BIT argument out of bounds");
+                        yyerror(result, "BIT argument out of bounds");
                         YYERROR;
                     }
                     $$ = calloc(sizeof(dmg_instruction), 1);
@@ -2410,7 +2451,7 @@ command:        NOP {
                 }
         |       BIT NUM ',' '(' HL ')' {
                     if ($2 >= 8 || $2 < 0) {
-                        yyerror("BIT argument out of bounds");
+                        yyerror(result, "BIT argument out of bounds");
                         YYERROR;
                     }
                     $$ = calloc(sizeof(dmg_instruction), 1);
@@ -2421,7 +2462,7 @@ command:        NOP {
                 }
         |       BIT NUM ',' A {
                     if ($2 >= 8 || $2 < 0) {
-                        yyerror("BIT argument out of bounds");
+                        yyerror(result, "BIT argument out of bounds");
                         YYERROR;
                     }
                     $$ = calloc(sizeof(dmg_instruction), 1);
@@ -2432,7 +2473,7 @@ command:        NOP {
                 }
         |       RES NUM ',' B {
                     if ($2 >= 8 || $2 < 0) {
-                        yyerror("RES argument out of bounds");
+                        yyerror(result, "RES argument out of bounds");
                         YYERROR;
                     }
                     $$ = calloc(sizeof(dmg_instruction), 1);
@@ -2443,7 +2484,7 @@ command:        NOP {
                 }
         |       RES NUM ',' C {
                     if ($2 >= 8 || $2 < 0) {
-                        yyerror("RES argument out of bounds");
+                        yyerror(result, "RES argument out of bounds");
                         YYERROR;
                     }
                     $$ = calloc(sizeof(dmg_instruction), 1);
@@ -2454,7 +2495,7 @@ command:        NOP {
                 }
         |       RES NUM ',' D {
                     if ($2 >= 8 || $2 < 0) {
-                        yyerror("RES argument out of bounds");
+                        yyerror(result, "RES argument out of bounds");
                         YYERROR;
                     }
                     $$ = calloc(sizeof(dmg_instruction), 1);
@@ -2465,7 +2506,7 @@ command:        NOP {
                 }
         |       RES NUM ',' E {
                     if ($2 >= 8 || $2 < 0) {
-                        yyerror("RES argument out of bounds");
+                        yyerror(result, "RES argument out of bounds");
                         YYERROR;
                     }
                     $$ = calloc(sizeof(dmg_instruction), 1);
@@ -2476,7 +2517,7 @@ command:        NOP {
                 }
         |       RES NUM ',' H {
                     if ($2 >= 8 || $2 < 0) {
-                        yyerror("RES argument out of bounds");
+                        yyerror(result, "RES argument out of bounds");
                         YYERROR;
                     }
                     $$ = calloc(sizeof(dmg_instruction), 1);
@@ -2487,7 +2528,7 @@ command:        NOP {
                 }
         |       RES NUM ',' L {
                     if ($2 >= 8 || $2 < 0) {
-                        yyerror("RES argument out of bounds");
+                        yyerror(result, "RES argument out of bounds");
                         YYERROR;
                     }
                     $$ = calloc(sizeof(dmg_instruction), 1);
@@ -2498,7 +2539,7 @@ command:        NOP {
                 }
         |       RES NUM ',' '(' HL ')' {
                     if ($2 >= 8 || $2 < 0) {
-                        yyerror("RES argument out of bounds");
+                        yyerror(result, "RES argument out of bounds");
                         YYERROR;
                     }
                     $$ = calloc(sizeof(dmg_instruction), 1);
@@ -2509,7 +2550,7 @@ command:        NOP {
                 }
         |       RES NUM ',' A {
                     if ($2 >= 8 || $2 < 0) {
-                        yyerror("RES argument out of bounds");
+                        yyerror(result, "RES argument out of bounds");
                         YYERROR;
                     }
                     $$ = calloc(sizeof(dmg_instruction), 1);
@@ -2520,7 +2561,7 @@ command:        NOP {
                 }
         |       SET NUM ',' B {
                     if ($2 >= 8 || $2 < 0) {
-                        yyerror("SET argument out of bounds");
+                        yyerror(result, "SET argument out of bounds");
                         YYERROR;
                     }
                     $$ = calloc(sizeof(dmg_instruction), 1);
@@ -2531,7 +2572,7 @@ command:        NOP {
                 }
         |       SET NUM ',' C {
                     if ($2 >= 8 || $2 < 0) {
-                        yyerror("SET argument out of bounds");
+                        yyerror(result, "SET argument out of bounds");
                         YYERROR;
                     }
                     $$ = calloc(sizeof(dmg_instruction), 1);
@@ -2542,7 +2583,7 @@ command:        NOP {
                 }
         |       SET NUM ',' D {
                     if ($2 >= 8 || $2 < 0) {
-                        yyerror("SET argument out of bounds");
+                        yyerror(result, "SET argument out of bounds");
                         YYERROR;
                     }
                     $$ = calloc(sizeof(dmg_instruction), 1);
@@ -2553,7 +2594,7 @@ command:        NOP {
                 }
         |       SET NUM ',' E {
                     if ($2 >= 8 || $2 < 0) {
-                        yyerror("SET argument out of bounds");
+                        yyerror(result, "SET argument out of bounds");
                         YYERROR;
                     }
                     $$ = calloc(sizeof(dmg_instruction), 1);
@@ -2564,7 +2605,7 @@ command:        NOP {
                 }
         |       SET NUM ',' H {
                     if ($2 >= 8 || $2 < 0) {
-                        yyerror("SET argument out of bounds");
+                        yyerror(result, "SET argument out of bounds");
                         YYERROR;
                     }
                     $$ = calloc(sizeof(dmg_instruction), 1);
@@ -2575,7 +2616,7 @@ command:        NOP {
                 }
         |       SET NUM ',' L {
                     if ($2 >= 8 || $2 < 0) {
-                        yyerror("SET argument out of bounds");
+                        yyerror(result, "SET argument out of bounds");
                         YYERROR;
                     }
                     $$ = calloc(sizeof(dmg_instruction), 1);
@@ -2586,7 +2627,7 @@ command:        NOP {
                 }
         |       SET NUM ',' '(' HL ')' {
                     if ($2 >= 8 || $2 < 0) {
-                        yyerror("SET argument out of bounds");
+                        yyerror(result, "SET argument out of bounds");
                         YYERROR;
                     }
                     $$ = calloc(sizeof(dmg_instruction), 1);
@@ -2597,7 +2638,7 @@ command:        NOP {
                 }
         |       SET NUM ',' A {
                     if ($2 >= 8 || $2 < 0) {
-                        yyerror("SET argument out of bounds");
+                        yyerror(result, "SET argument out of bounds");
                         YYERROR;
                     }
                     $$ = calloc(sizeof(dmg_instruction), 1);
@@ -2610,15 +2651,9 @@ command:        NOP {
 
 %%
 
-int yyerror(const char *s)
+int yyerror(struct dmg_parse_result *result, const char *s)
 {
+    (void)result;
     fprintf(stderr, "Error: %s\n", s);
     exit(1);
-}
-
-int main(void)
-{
-    yyparse();
-
-    return 0;
 }
